@@ -17,4 +17,16 @@ public class Reservation {
     public String getFlightID() {
         return this.flightID;
     }
+
+    public String getClientID(){
+        return this.clientID;
+    }
+
+    public boolean isToFlight(String id){
+        return this.ID.equals(id);
+    }
+
+    public boolean isFromUser(String id){
+        return this.ID.equals(clientID);
+    }
 }

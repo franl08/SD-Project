@@ -1,10 +1,16 @@
 package Client;
 
-public class User {
+import UI.*;
+import Utils.Demultiplexer;
+import Utils.TaggedConnection;
+
+import java.net.Socket;
+import java.util.Map;
+
+public abstract class User {
     private String username;
     private String email;
-    private String[] fullName;
-    private String ID;
+    private String fullName;
     private String password;
 
     public String getPassword(){
@@ -19,14 +25,46 @@ public class User {
         return this.email;
     }
 
-    public String[] getFullName(){
-        String[] ans = new String[this.fullName.length];
-        int ac = 0;
-        for(String name : this.fullName) ans[ac++] = name;
-        return ans;
+    public String getFullName(){
+        return this.fullName;
     }
 
-    public String getID(){
-        return this.ID;
+    public abstract void run();
+
+    public static boolean loggingIn(Socket s, Demultiplexer dm, TaggedConnection tc, Map.Entry<String,String> credentialsPair) {
+        try {
+            String username = credentialsPair.getKey();
+            String password = credentialsPair.getValue();
+
+            dm.send(0, (username.length() + username + password.length() + password).getBytes());
+
+            byte[] validAutentication = dm.receive(0);
+            char valid = (char) validAutentication[0];
+
+            return valid == '1';
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public static void main(String[] args) {
+
+        UI ui = new UI();
+        String option = ui.clientMenu();
+
+        User u = switch (Integer.parseInt(option)) {
+            case 1 -> new Client(ui);
+            case 2 -> new Admin(ui);
+            default -> null;
+        };
+
+        if (u != null)
+            u.run();
+        else
+            System.out.println("Invalid option");
+
     }
 }
