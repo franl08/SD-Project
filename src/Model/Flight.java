@@ -3,14 +3,14 @@ package Model;
 public class Flight {
     private String ID;
     private int nMaxPassengers;
-    private int nReserves;
+    private int nReservations;
     private String origin;
     private String destination;
 
-    public Flight(String ID, int nMaxPassengers, int nReserves, String origin, String destination) {
+    public Flight(String ID, int nMaxPassengers, int nReservations, String origin, String destination) {
         this.ID = ID;
         this.nMaxPassengers = nMaxPassengers;
-        this.nReserves = nReserves;
+        this.nReservations = nReservations;
         this.origin = origin;
         this.destination = destination;
     }
@@ -23,8 +23,8 @@ public class Flight {
         return this.nMaxPassengers;
     }
 
-    public int getnReserves() {
-        return this.nReserves;
+    public int getnReservations() {
+        return this.nReservations;
     }
 
     public String getOrigin() {

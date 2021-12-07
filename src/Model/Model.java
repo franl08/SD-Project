@@ -4,12 +4,11 @@ import Client.Client;
 import Client.User;
 
 import java.util.Map;
-import java.util.Set;
 
 public class Model {
     private Map<String, User> users;
     private Map<String, Flight> flights;
-    private Map<String, Reserve> reserves;
+    private Map<String, Reservation> reserves;
 
 
     public boolean checkAutentication(String username, String password){
@@ -26,11 +25,11 @@ public class Model {
         this.flights.put(f.getID(), f);
     }
 
-    public void addReserve(Reserve r){
+    public void addReserve(Reservation r){
         this.reserves.put(r.getID(), r);
     }
 
-    public Reserve getReserve(String s){
+    public Reservation getReserve(String s){
         return reserves.get(s);
     }
 
@@ -64,9 +63,9 @@ public class Model {
 
     public boolean createReserve(String ID, String clientID, String flightID){
         if(reserves.containsKey(ID)) return false;
-        Reserve r = new Reserve(ID, clientID, flightID);
+        Reservation r = new Reservation(ID, clientID, flightID);
         Client c = (Client) this.users.get(clientID);
-        Map<String, Reserve> clientReserves = c.getReserves();
+        Map<String, Reservation> clientReserves = c.getReserves();
         if (!reserves.containsKey(r.getID())) c.addReserve(r);
         this.reserves.put(r.getID(), r);
         return true;
