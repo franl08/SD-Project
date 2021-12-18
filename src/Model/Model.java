@@ -275,30 +275,94 @@ public class Model {
         return flights;
     }
 
-    /* QUESTION 5
+    // QUESTION 5 feita à padeiro -> pra já, dá para até 2 escalas, mas isto tá muito ineficiente (estupidamente), penso que tbm devia-se evitar os cases, mas não tou a ver como fazer
 
-    public Set<List<Flight>> getPossibleOptionsInList(List<List<Flight>> availableFlights){
-        Set<List<Flight>> ans = new HashSet<>();
-        for(List<Flight> listFlights : availableFlights){
-            for(Flight f : listFlights){
+    public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
+        List<Flight> ans = new ArrayList<>();
+        for(Flight f : fs){
+            if(this.flights.get(f.getID()).hasFreeSpace() && this.flights.get(f.getID()).getToGo()) ans.add(f);
+        }
+        return ans;
+    }
 
+    public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
+        List<Route> routes = new ArrayList<>();
+        switch(desiredCities.size() - 2){
+            case 0:{
+                List<Flight> fs = getFlightsWithOriginDestinationAndDateRange(desiredCities.get(0), desiredCities.get(1), begin, end);
+                List<Flight> availables = getFlightsAvailableForReservationFromList(fs);
+                routes.add(new Route(desiredCities.get(0), desiredCities.get(1), availables));
+            }
+            case 1:{
+                List<List<Flight>> fs = getFlightsWithOneStopOnSameDateWithDateRange(desiredCities.get(0), desiredCities.get(2), begin, end);
+                for(List<Flight> list : fs){
+                    List<Flight> availables = getFlightsAvailableForReservationFromList(list);
+                    Route r = new Route(desiredCities.get(0), desiredCities.get(1), availables);
+                    routes.add(r);
+                }
+            }
+            case 2:{
+                List<List<Flight>> fs = getFlightsWithTwoStopsOnSameDateWithDateRange(desiredCities.get(0), desiredCities.get(2), begin, end);
+                for(List<Flight> list : fs){
+                    List<Flight> availables = getFlightsAvailableForReservationFromList(list);
+                    Route r = new Route(desiredCities.get(0), desiredCities.get(1), availables);
+                    routes.add(r);
+                }
+            }
+
+            // Vale a pena fazer para mais paragens? PLS ALGUÉM SAIBA UMA MANEIRA DE FAZER ISTO DE FORMA + EFICIENTE!!!!!
+        }
+        return routes;
+    }
+
+    public List<List<Flight>> getFlightsWithOneStopOnSameDateWithDateRange(City origin, City destination, LocalDate begin, LocalDate end){
+        List<List<Flight>> ans = new ArrayList<>();
+        List<Flight> fromOrigin = getFlightsFromCityWithDateRange(origin, begin, end);
+        if(!fromOrigin.isEmpty()){
+            List<Flight> toDestination = getFlightsToCityWithDateRange(destination, begin, end);
+            if(!toDestination.isEmpty())
+                for(Flight f : toDestination){
+                    City o = f.getOrigin();
+                    LocalDate d = f.getDate();
+                    for(Flight fl : fromOrigin)
+                        if(fl.getDestination().equals(o) && fl.getDate().equals(d)){
+                            List<Flight> toAdd = new ArrayList<>();
+                            toAdd.add(f.clone());
+                            toAdd.add(fl.clone());
+                            ans.add(toAdd);
+                        }
+                }
+        }
+        return ans;
+    }
+
+    public List<List<Flight>> getFlightsWithTwoStopsOnSameDateWithDateRange(City origin, City destination, LocalDate begin, LocalDate end){
+        List<List<Flight>> ans = new ArrayList<>();
+        List<Flight> fromOrigin = getFlightsFromCityWithDateRange(origin, begin, end);
+        if(!fromOrigin.isEmpty()){
+            List<Flight> toDestination = getFlightsToCityWithDateRange(destination, begin, end);
+            if(!toDestination.isEmpty()) {
+                Set<Flight> withoutCities = getFlightsWithoutCities(origin, destination);
+                for (Flight f : withoutCities) {
+                    City o = f.getOrigin();
+                    City d = f.getDestination();
+                    LocalDate dF = f.getDate();
+                    for (Flight flO : fromOrigin)
+                        if (flO.getDestination().equals(o) && flO.getDate().equals(dF)) {
+                            for(Flight flD : toDestination)
+                                if(flD.getOrigin().equals(d) && flD.getDate().equals(dF)){
+                                    List<Flight> toAdd = new ArrayList<>();
+                                    toAdd.add(flO.clone());
+                                    toAdd.add(f.clone());
+                                    toAdd.add(flD.clone());
+                                    ans.add(toAdd);
+                                }
+                        }
+                }
             }
         }
+        return ans;
     }
-
-    public List<Flight> getAvailableFlightsInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
-        List<Flight> flights = new ArrayList<>();
-        List<List<Flight>> listOfFlights = new ArrayList<>();
-        City origin = desiredCities.get(0);
-        for(int i = 0; i < desiredCities.size(); i++) {
-            City destination = desiredCities.get(i + 1);
-            List<Flight> flightsBetweenCities = getFlightsWithOriginDestinationAndDateRange(origin, destination, begin, end);
-            origin = destination;
-            listOfFlights.add(flightsBetweenCities);
-        }
-
-    }
-     */
 
     public List<Flight> getFlightsFromCity(City c){
         List<Flight> ans = new ArrayList<>();
@@ -317,6 +381,25 @@ public class Model {
         }
         return ans;
     }
+
+    public List<Flight> getFlightsToCityWithDateRange(City c, LocalDate begin, LocalDate end){
+        List<Flight> ans = new ArrayList<>();
+        for(String id : this.flights.keySet()){
+            Flight f = this.flights.get(id);
+            if(f.getDestination().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f);
+        }
+        return ans;
+    }
+
+    public List<Flight> getFlightsFromCityWithDateRange(City c, LocalDate begin, LocalDate end){
+        List<Flight> ans = new ArrayList<>();
+        for(String id : this.flights.keySet()){
+            Flight f = this.flights.get(id);
+            if(f.getOrigin().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f);
+        }
+        return ans;
+    }
+
 
     public Set<Flight> getFlightsWithoutCities(City c1, City c2){
         Set<Flight> ans = new HashSet<>();
