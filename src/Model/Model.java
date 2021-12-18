@@ -275,7 +275,8 @@ public class Model {
         return flights;
     }
 
-    /*
+    /* QUESTION 5
+
     public Set<List<Flight>> getPossibleOptionsInList(List<List<Flight>> availableFlights){
         Set<List<Flight>> ans = new HashSet<>();
         for(List<Flight> listFlights : availableFlights){
@@ -297,7 +298,105 @@ public class Model {
         }
 
     }
-
      */
+
+    public List<Flight> getFlightsFromCity(City c){
+        List<Flight> ans = new ArrayList<>();
+        for(String id : this.flights.keySet()){
+            Flight f = this.flights.get(id);
+            if(f.getOrigin().equals(c)) ans.add(f);
+        }
+        return ans;
+    }
+
+    public List<Flight> getFlightsToCity(City c){
+        List<Flight> ans = new ArrayList<>();
+        for(String id : this.flights.keySet()){
+            Flight f = this.flights.get(id);
+            if(f.getDestination().equals(c)) ans.add(f);
+        }
+        return ans;
+    }
+
+    public Set<Flight> getFlightsWithoutCities(City c1, City c2){
+        Set<Flight> ans = new HashSet<>();
+        for(String id : this.flights.keySet()){
+            Flight f = this.flights.get(id);
+            if(f.getDestination() != c1 && f.getDestination() != c2 && f.getOrigin() != c1 && f.getOrigin() != c2) ans.add(f);
+        }
+        return ans;
+    }
+
+    public List<List<Flight>> getFlightsWithOneStop(City origin, City destination){
+        List<List<Flight>> ans = new ArrayList<>();
+        List<Flight> fromOrigin = getFlightsFromCity(origin);
+        if(!fromOrigin.isEmpty()){
+            List<Flight> toDestination = getFlightsToCity(destination);
+            if(!toDestination.isEmpty())
+                for(Flight f : toDestination){
+                    City o = f.getOrigin();
+                    for(Flight fl : fromOrigin)
+                        if(fl.getDestination().equals(o)){
+                            List<Flight> toAdd = new ArrayList<>();
+                            toAdd.add(f.clone());
+                            toAdd.add(fl.clone());
+                            ans.add(toAdd);
+                        }
+                }
+        }
+        return ans;
+    }
+
+    public List<List<Flight>> getFlightsWithTwoStops(City origin, City destination){
+        List<List<Flight>> ans = new ArrayList<>();
+        List<Flight> fromOrigin = getFlightsFromCity(origin);
+        if(!fromOrigin.isEmpty()){
+            List<Flight> toDestination = getFlightsToCity(destination);
+            if(!toDestination.isEmpty()) {
+                Set<Flight> withoutCities = getFlightsWithoutCities(origin, destination);
+                for (Flight f : withoutCities) {
+                    City o = f.getOrigin();
+                    City d = f.getDestination();
+                    for (Flight flO : fromOrigin)
+                        if (flO.getDestination().equals(o)) {
+                            for(Flight flD : toDestination)
+                                if(flD.getOrigin().equals(d)){
+                                    List<Flight> toAdd = new ArrayList<>();
+                                    toAdd.add(flO.clone());
+                                    toAdd.add(f.clone());
+                                    toAdd.add(flD.clone());
+                                    ans.add(toAdd);
+                                }
+                        }
+                }
+            }
+        }
+        return ans;
+    }
+
+    // Provavelmente dá pra otimizar isto, aliás, não faz sentido estar sempre a adicionar a cidade de origem e destino, deve dar pra fazer algo com Map.Entry, mas pra já, é o que é
+    public List<Route> getRoutes(City origin, City destination){
+        List<Route> ans = new ArrayList<>();
+
+        List<Flight> flights = getFlightsWithOriginAndDestination(origin, destination);
+        if(flights != null && !flights.isEmpty())
+            for(Flight f : flights){
+                List<Flight> toAdd = new ArrayList<>();
+                toAdd.add(f.clone());
+                ans.add(new Route(origin, destination, toAdd));
+            }
+
+        List<List<Flight>> flights1stop = getFlightsWithOneStop(origin, destination);
+        if(flights1stop != null && !flights1stop.isEmpty())
+            for(List<Flight> fls : flights1stop)
+                ans.add(new Route(origin, destination, fls));
+
+        List<List<Flight>> flights2stop = getFlightsWithTwoStops(origin, destination);
+        if(flights2stop != null && !flights2stop.isEmpty())
+            for(List<Flight> fls : flights2stop)
+                ans.add(new Route(origin, destination, fls));
+
+        return ans;
+    }
 
 }

@@ -85,4 +85,11 @@ public class Flight {
         return nReservations < nMaxPassengers;
     }
 
+    public boolean equals(Object o){
+        if (this == o) return false;
+        else if (o == null || o.getClass() != this.getClass()) return false;
+        Flight f = (Flight) o;
+        return f.getID().equals(this.ID);
+    }
+
 }
