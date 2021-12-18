@@ -1,20 +1,40 @@
 package Model;
 
+import Utils.City;
+
+import java.time.LocalDate;
+
 public class Flight {
     private String ID;
     private int nMaxPassengers;
     private int nReservations;
-    private String origin;
-    private String destination;
+    private City origin;
+    private City destination;
     private boolean toGo;
+    private LocalDate date;
 
-    public Flight(String ID, int nMaxPassengers, int nReservations, String origin, String destination, boolean toGo) {
+    public Flight(String ID, int nMaxPassengers, int nReservations, City origin, City destination, boolean toGo, LocalDate date) {
         this.ID = ID;
         this.nMaxPassengers = nMaxPassengers;
         this.nReservations = nReservations;
         this.origin = origin;
         this.destination = destination;
         this.toGo = toGo;
+        this.date = date;
+    }
+
+    public Flight(Flight f){
+        this.ID = f.getID();
+        this.nMaxPassengers = f.getnMaxPassengers();
+        this.nReservations = f.getnReservations();
+        this.origin = f.getOrigin();
+        this.destination = f.getDestination();
+        this.toGo = f.getToGo();
+        this.date = f.getDate();
+    }
+
+    public Flight clone(){
+        return new Flight(this);
     }
 
     public String getID() {
@@ -29,16 +49,24 @@ public class Flight {
         return this.nReservations;
     }
 
-    public String getOrigin() {
+    public City getOrigin() {
         return this.origin;
     }
 
-    public String getDestination() {
+    public City getDestination() {
         return this.destination;
     }
 
     public boolean getToGo(){
         return this.toGo;
+    }
+
+    public LocalDate getDate() {
+        return this.date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 
     public boolean removeOneReservation(){

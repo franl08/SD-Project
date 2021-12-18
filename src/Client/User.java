@@ -13,6 +13,13 @@ public abstract class User {
     private String fullName;
     private String password;
 
+    public User(String username, String email, String fullName, String password){
+        this.username = username;
+        this.email = email;
+        this.fullName = fullName;
+        this.password = password;
+    }
+
     public String getPassword(){
         return this.password;
     }
@@ -50,14 +57,17 @@ public abstract class User {
         return false;
     }
 
+    public abstract User clone();
+
+    /*
     public static void main(String[] args) {
 
         UI ui = new UI();
         String option = ui.clientMenu();
 
         User u = switch (Integer.parseInt(option)) {
-            case 1 -> new Client(ui);
-            case 2 -> new Admin(ui);
+            case 1 -> new Client();
+            case 2 -> new Admin();
             default -> null;
         };
 
@@ -67,4 +77,5 @@ public abstract class User {
             System.out.println("Invalid option");
 
     }
+    */
 }

@@ -16,7 +16,6 @@ public class UI {
         System.out.println("|               Welcome to Receeding Airline!                  |");
         System.out.println("| 1. User login.                                               |");
         System.out.println("| 2. User registration                                         |");
-        System.out.println("| 3. Admin login.                                              |");
         System.out.println("----------------------------------------------------------------");
         System.out.println("Insert option: ");
 

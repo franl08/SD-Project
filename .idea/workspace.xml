@@ -10,7 +10,9 @@
       <change beforePath="$PROJECT_DIR$/src/Client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Client/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/User.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Model/Flight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Model/Flight.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Model/Reserve.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Model/Reserve.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Model/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Model/Model.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Model/Reservation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Model/Reservation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/UI/UI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/UI/UI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,12 +22,16 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="21HGKoC3H3iP7Hre7fvNoR0bvSe" />
   <component name="ProjectLevelVcsManager">
@@ -56,10 +62,23 @@
       <workItem from="1637590542891" duration="685000" />
       <workItem from="1637703879086" duration="22000" />
       <workItem from="1637835322944" duration="1865000" />
+      <workItem from="1638009895780" duration="18000" />
+      <workItem from="1639838391565" duration="9813000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

@@ -5,14 +5,13 @@ import Model.Reservation;
 import UI.UI;
 import Utils.Demultiplexer;
 import Utils.TaggedConnection;
-import Utils.TaggedConnection.Frame;
 
 import java.net.Socket;
 import java.util.Map;
 
 public class Client extends User{
 
-    private final UI ui;
+    private final UI ui = new UI();
 
     private Map<String, Reservation> reservations;
 
@@ -20,8 +19,17 @@ public class Client extends User{
         return reservations;
     }
 
-    public Client(UI ui) {
-        this.ui = ui;
+
+    public Client(String username, String email, String fullName, String password) {
+        super(username, email, fullName, password);
+    }
+
+    public Client(Client c){
+        super(c.getUsername(), c.getEmail(), c.getFullName(), c.getPassword());
+    }
+
+    public Client clone(){
+        return new Client(this);
     }
 
     public void addReservation(Reservation r){
