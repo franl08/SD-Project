@@ -4,8 +4,6 @@ import UI.*;
 
 public class Admin extends User{
 
-    private final UI ui = new UI();
-
     public Admin(String username, String email, String fullName, String password) {
         super(username, email, fullName, password);
     }
