@@ -159,7 +159,6 @@ public class UI {
         menu.run();
     }
 
-    // TODO Convert String to City
     public void addFlightInformation() {
         System.out.print("Insert id");
         String id = scanner.nextLine();
@@ -168,16 +167,14 @@ public class UI {
         System.out.print("Insert number of reservation: ");
         String nReserv = scanner.nextLine();
         System.out.print("Insert origin: ");
-        String origS = scanner.nextLine();
-        City orig;
+        String orig = scanner.nextLine();
         System.out.print("Insert destination: ");
-        String destS = scanner.nextLine();
-        City dest;
-        System.out.print("Insert ?? :");
+        String dest = scanner.nextLine();
+        System.out.print("Insert Departure/Arrival :");
         String toGo = scanner.nextLine();
         System.out.print("Insert date: ");
         String date = scanner.nextLine();
-        //this.model.addFlight(new Flight(id, Integer.parseInt(nMaxP), Integer.parseInt(nReserv), orig, dest, toGo.equals("true"), LocalDate.parse(date)));
+        this.model.addFlight(new Flight(id, Integer.parseInt(nMaxP), Integer.parseInt(nReserv), City.valueOf(orig), City.valueOf(dest), toGo.equalsIgnoreCase("Departure"), LocalDate.parse(date)));
     }
 
     public void closeDay() {
