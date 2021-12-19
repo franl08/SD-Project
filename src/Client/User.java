@@ -36,8 +36,6 @@ public abstract class User {
         return this.fullName;
     }
 
-    public abstract void run();
-
     public static boolean loggingIn(Socket s, Demultiplexer dm, TaggedConnection tc, Map.Entry<String,String> credentialsPair) {
         try {
             String username = credentialsPair.getKey();
@@ -59,23 +57,5 @@ public abstract class User {
 
     public abstract User clone();
 
-    /*
-    public static void main(String[] args) {
 
-        UI ui = new UI();
-        String option = ui.clientMenu();
-
-        User u = switch (Integer.parseInt(option)) {
-            case 1 -> new Client();
-            case 2 -> new Admin();
-            default -> null;
-        };
-
-        if (u != null)
-            u.run();
-        else
-            System.out.println("Invalid option");
-
-    }
-    */
 }

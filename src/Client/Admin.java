@@ -16,7 +16,4 @@ public class Admin extends User{
         return new Admin(this);
     }
 
-    public void run() {
-
-    }
 }

@@ -38,22 +38,4 @@ public class Client extends User{
         return true;
     }
 
-    public void run() {
-        try {
-            Socket s = new Socket("localhost", 12345);
-            TaggedConnection tc = new TaggedConnection(s);
-            Demultiplexer dm = new Demultiplexer(tc);
-            dm.start();
-
-            /*Map.Entry<String, String> credentialsPair = ui.login();
-            boolean loggingIn = User.loggingIn(s,dm,tc,credentialsPair);
-            if (loggingIn) {
-                // New menu
-            }*/
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 }
