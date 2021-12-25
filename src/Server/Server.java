@@ -1,6 +1,8 @@
 package Server;
 
+import Client.User;
 import Model.Model;
+import Utils.Demultiplexer;
 import Utils.TaggedConnection.Frame;
 import Utils.TaggedConnection;
 
@@ -8,12 +10,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Map;
 
 public class Server {
+
     public static void main(String[] args) throws Exception {
 
         ServerSocket ss = new ServerSocket(12345);
         Model model = new Model();
+        // TODO: Se o servidor existir fetch contas
 
         while(true) {
             Socket s = ss.accept();
@@ -22,28 +27,39 @@ public class Server {
             Runnable worker = () -> {
 
                 try (connection) {
-                    Frame f = connection.receive();
-                    int tag = f.tag;
-                    byte[] data = f.data;
 
-                    ByteBuffer buffer = ByteBuffer.allocate(data.length);
-                    int lengthUsername = buffer.getInt();
-                    byte[] username = new byte[lengthUsername];
-                    buffer.get(username, 0, lengthUsername);
+                    while (true) {
 
-                    int lengthPassword = buffer.getInt();
-                    byte[] password = new byte[lengthPassword];
-                    buffer.get(password, 0, lengthPassword);
+                        Frame f = connection.receive();
+                        boolean isClient = f.isClient == '1';
 
-                    byte[] answer = new byte[1];
+                        if (f.tag == 0) { // Login attempt
 
-                    if (model.checkAutentication(Arrays.toString(username), Arrays.toString(password))) {
-                        answer[0] = (byte) '1';
-                    } else {
-                        answer[0] = (byte) '0';
+                            String answer = "0";
+
+                            if (model.checkAutentication(f.username, new String(f.data)))
+                                answer = "1";
+
+                            connection.send(f.tag, f.isClient, "", answer.getBytes());
+
+                        } else if (f.tag == 1) { // Registration attempts
+
+                            String username = f.username;
+                            String password = new String(f.data);
+
+                            String answer = "0";
+
+                            if (!model.lookupUser(username) && isClient) {
+                                answer = "1"; // Success
+
+                                // Criar cliente
+
+                            } else if (!isClient)
+                                answer = "2"; // Admin can't perform registration
+
+                            connection.send(f.tag, f.isClient, "", answer.getBytes());
+                        }
                     }
-
-                    connection.send(f.tag, answer);
 
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -55,12 +55,13 @@ public class Demultiplexer {
         }).start();
     }
 
+
     public void send(TaggedConnection.Frame frame) throws IOException {
         tc.send(frame);
     }
 
-    public void send(int tag, byte[] data) throws IOException {
-        tc.send(tag, data);
+    public void send(int tag, char isClient, String username, byte[] data) throws IOException {
+        tc.send(tag, isClient, username, data);
     }
 
     public byte[] receive(int tag) throws IOException, InterruptedException {

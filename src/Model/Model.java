@@ -87,13 +87,21 @@ public class Model {
         return u.getPassword().equals(password);
     }
 
+    public boolean lookupUser(String username) {
+        return users.containsKey(username);
+    }
+
+    public void addClient(String username, String password, String email, String fullName) {
+        this.users.put(username, new Client(username, email, fullName, password));
+    }
+
     public void addUser(User u){
         if(u.getClass().getName().equals("Client.Admin")) this.users.put(u.getUsername(), u);
         else{
             Client c = (Client) u;
             Map<String, Reservation> reservationsFromUser = c.getReservations();
             for(String code : reservationsFromUser.keySet()){
-                boolean added = addReserve(reservationsFromUser.get(code).clone());
+                boolean added = addReservation(reservationsFromUser.get(code).clone());
                 if(!added)
                     c.removeReservation(code);
             }
@@ -105,7 +113,7 @@ public class Model {
         this.flights.put(f.getID(), f);
     }
 
-    public boolean addReserve(Reservation r){
+    public boolean addReservation(Reservation r){
         Client c = (Client) this.users.get(r.getClientID());
         if(!c.getReservations().containsKey(r.getID())) c.addReservation(r);
         Set<String> flightsIDs = r.getFlightsID();
@@ -120,7 +128,7 @@ public class Model {
         return false;
     }
 
-    public Reservation getReserve(String s){
+    public Reservation getReservation(String s){
         return reservations.get(s);
     }
 

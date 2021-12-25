@@ -3,18 +3,22 @@ package Client;
 
 import Model.Reservation;
 import Utils.Demultiplexer;
-import Utils.TaggedConnection;
 
+import java.io.BufferedReader;
 import java.net.Socket;
 import java.util.Map;
 
 public class Client extends User{
 
-    private Map<String, Reservation> reservations;
+    private Demultiplexer dm;
+    private Socket s;
+    private BufferedReader input;
 
+    private Map<String, Reservation> reservations;
     public Map<String, Reservation> getReservations(){
         return reservations;
     }
+
 
     public Client(String username, String email, String fullName, String password) {
         super(username, email, fullName, password);
@@ -36,6 +40,10 @@ public class Client extends User{
         if(!this.reservations.containsKey(s)) return false;
         this.reservations.remove(s);
         return true;
+    }
+
+    public void run() {
+
     }
 
 }
