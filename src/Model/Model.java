@@ -168,7 +168,22 @@ public class Model {
         return false;
     }
 
-    public boolean removeReservation(String s){
+    public boolean removeReservationByClient(String s, String currentUser){
+        if(this.reservations.containsKey(s)) {
+            String username = this.reservations.get(s).getClientID();
+            if (this.users.containsKey(username) && currentUser.equals(username)) {
+                Client c = (Client) this.users.get(username);
+                boolean removed = c.removeReservation(s);
+                if (removed) {
+                    this.reservations.remove(s);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean removeReservation(String s) {
         if(this.reservations.containsKey(s)) {
             String username = this.reservations.get(s).getClientID();
             if (this.users.containsKey(username)) {

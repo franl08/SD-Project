@@ -10,14 +10,10 @@ import java.net.Socket;
 
 public abstract class User {
     private String username;
-    private String email;
-    private String fullName;
     private String password;
 
-    public User(String username, String email, String fullName, String password){
+    public User(String username, String password){
         this.username = username;
-        this.email = email;
-        this.fullName = fullName;
         this.password = password;
     }
 
@@ -27,14 +23,6 @@ public abstract class User {
 
     public String getUsername(){
         return this.username;
-    }
-
-    public String getEmail(){
-        return this.email;
-    }
-
-    public String getFullName(){
-        return this.fullName;
     }
 
     public abstract User clone();
