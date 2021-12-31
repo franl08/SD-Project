@@ -1,59 +1,49 @@
 package Model;
 
-import Client.Client;
-import Client.User;
 import Utils.City;
 import Utils.Utilities;
 
+import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 
 public class Model {
-    private Map<String, User> users;
+
+    private Map<String, String> clients;
     private Map<String, Flight> flights;
     private Map<String, Reservation> reservations;
+    private Map<String, Set<String>> clientReservations;
     private Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
 
     public Model() {
-        this.users = new HashMap<>();
+        this.clients = new HashMap<>();
         this.flights = new HashMap<>();
         this.reservations = new HashMap<>();
         this.closedDays = new HashSet<>();
     }
 
-    public Model(Map<String, User> users, Map<String, Flight> flights, Map<String, Reservation> reservations, Set<LocalDate> closedDays){
-        this.setUsers(users);
-        this.setFlights(flights);
-        this.setReservations(reservations);
+    public Model(Map<String, String> clients, Map<String, Flight> flights, Map<String, Reservation> reservations, Map<String, Set<String>> clientReservations, Set<LocalDate> closedDays){
+        this.clients = clients;
+        this.flights = flights;
+        this.reservations = reservations;
+        this.clientReservations = clientReservations;
+        this.closedDays = closedDays;
     }
 
-    public void setUsers(Map<String, User> users){
-        this.users = new HashMap<>();
-        if(!users.isEmpty())
-            for(String username : users.keySet())
-                this.users.put(username, users.get(username).clone());
+    public Model(Model m) {
+        this.clients = m.getClients();
+        this.flights = m.getFlights();
+        this.reservations = m.getReservations();
+        this.clientReservations = m.getClientReservations();
+        this.closedDays = m.getClosedDays();
     }
 
-    public void setFlights(Map<String, Flight> flights){
-        this.flights = new HashMap<>();
-        if(!flights.isEmpty())
-            for(String code : flights.keySet())
-                this.flights.put(code, flights.get(code).clone());
+    public Model clone() {
+        return new Model(this);
     }
 
-    public void setReservations(Map<String, Reservation> reservations){
-        this.reservations = new HashMap<>();
-        if(!reservations.isEmpty())
-            for(String code : reservations.keySet())
-                this.reservations.put(code, reservations.get(code).clone());
-    }
-
-    public Map<String, User> getUsers(){
-        Map<String, User> users = new HashMap<>();
-        if(!this.users.isEmpty())
-            for(String username : this.users.keySet())
-                users.put(username, this.users.get(username).clone());
-        return users;
+    public Map<String, String> getClients(){
+        return new HashMap<>(this.clients);
     }
 
     public Map<String, Flight> getFlights(){
@@ -72,6 +62,15 @@ public class Model {
         return reservations;
     }
 
+    public Map<String,Set<String>> getClientReservations() {
+        Map<String,Set<String>> clientReservations = new HashMap<>();
+
+        for (Map.Entry<String, Set<String>> entry : this.clientReservations.entrySet())
+            clientReservations.put(entry.getKey(), new HashSet<>(entry.getValue()));
+
+        return clientReservations;
+    }
+
     public Set<LocalDate> getClosedDays(){
         return new HashSet<>(this.closedDays);
     }
@@ -81,55 +80,42 @@ public class Model {
         this.closedDays.addAll(dates);
     }
 
-    public boolean checkAutentication(String username, String password){
-        if(!users.containsKey(username)) return false;
-        User u = users.get(username);
-        return u.getPassword().equals(password);
+    public boolean checkAuthentication(String username, String password){
+        if(!this.clients.containsKey(username)) return false;
+        return this.clients.get(username).equals(password);
     }
 
     public boolean lookupUser(String username) {
-        return users.containsKey(username);
+        return this.clients.containsKey(username);
     }
 
-    public void addClient(String username, String password, String email, String fullName) {
-        this.users.put(username, new Client(username, email, fullName, password));
-    }
-
-    public void addUser(User u){
-        if(u.getClass().getName().equals("Client.Admin")) this.users.put(u.getUsername(), u);
-        else{
-            Client c = (Client) u;
-            Map<String, Reservation> reservationsFromUser = c.getReservations();
-            for(String code : reservationsFromUser.keySet()){
-                boolean added = addReservation(reservationsFromUser.get(code).clone());
-                if(!added)
-                    c.removeReservation(code);
-            }
-            this.users.put(c.getUsername(), c);
-        }
+    public boolean addClient(String email, String password) {
+        if (this.clients.containsKey(email)) return false;
+        this.clients.put(email,password);
+        return true;
     }
 
     public void addFlight(Flight f){
         this.flights.put(f.getID(), f);
     }
 
-    public boolean addReservation(Reservation r){
-        Client c = (Client) this.users.get(r.getClientID());
-        if(!c.getReservations().containsKey(r.getID())) c.addReservation(r);
-        Set<String> flightsIDs = r.getFlightsID();
-        if(checkSetOfFlightsToReservation(flightsIDs)){
-            for(String fID : flightsIDs){
-                this.flights.get(fID).addOneReservation();
+    public void addReservation(String email, Reservation r) {
 
-            }
-            this.reservations.put(r.getID(), r.clone());
-            return true;
-        }
-        return false;
+        this.reservations.put(r.getID(), r); // TODO: Verificaçao?
+
+        Set<String> reserv;
+
+        if (this.clientReservations.containsKey(email))
+            reserv = this.clientReservations.get(email);
+        else
+            reserv = new HashSet<>();
+
+        reserv.add(r.getID());
+        this.clientReservations.put(email, reserv);
     }
 
     public Reservation getReservation(String s){
-        return reservations.get(s);
+        return this.reservations.get(s).clone();
     }
 
     public Flight getFlight(String s){
@@ -168,60 +154,22 @@ public class Model {
         return false;
     }
 
-    public boolean removeReservationByClient(String s, String currentUser){
-        if(this.reservations.containsKey(s)) {
-            String username = this.reservations.get(s).getClientID();
-            if (this.users.containsKey(username) && currentUser.equals(username)) {
-                Client c = (Client) this.users.get(username);
-                boolean removed = c.removeReservation(s);
-                if (removed) {
-                    this.reservations.remove(s);
-                    return true;
-                }
+    public boolean removeReservationByClient(String reservationID, String currentUser){
+        if(this.reservations.containsKey(reservationID)) {
+            String username = this.reservations.get(reservationID).getClientID();
+            if (this.clients.containsKey(username) && currentUser.equals(username)) {
+                this.clientReservations.remove(reservationID);
             }
         }
         return false;
     }
 
-    public boolean removeReservation(String s) {
-        if(this.reservations.containsKey(s)) {
-            String username = this.reservations.get(s).getClientID();
-            if (this.users.containsKey(username)) {
-                Client c = (Client) this.users.get(username);
-                boolean removed = c.removeReservation(s);
-                if (removed) {
-                    this.reservations.remove(s);
-                    return true;
-                }
+    public boolean removeReservation(String reservationID) {
+        if(this.reservations.containsKey(reservationID)) {
+            String username = this.reservations.get(reservationID).getClientID();
+            if (this.clients.containsKey(username)) {
+                this.clientReservations.remove(reservationID);
             }
-        }
-        return false;
-    }
-
-    public boolean deleteUser(String ID){
-        if(this.users.containsKey(ID)) {
-            Map<String, Reservation> reservationsOfUser = getReservationsFromUser(ID);
-            if(!reservationsOfUser.isEmpty())
-                for(String code : reservationsOfUser.keySet()){
-                    Reservation r = reservationsOfUser.get(code);
-                    Set<String> flightsID = r.getFlightsID();
-                    boolean flag = true;
-                    for(String fID : flightsID) {
-                        Flight f = this.getFlight(fID);
-                        if (!f.getToGo())
-                            flag = false;
-                            break;
-                    }
-                    if(flag){
-                        for(String fID : flightsID){
-                            Flight f = this.getFlight(fID);
-                            f.removeOneReservation();
-                        }
-                        removeReservation(code);
-                    }
-                }
-            this.users.remove(ID);
-            return true;
         }
         return false;
     }
@@ -244,9 +192,16 @@ public class Model {
     public boolean createReservation(String ID, String clientID, Set<String> flightsID){
         if(checkSetOfFlightsToReservation(flightsID) || reservations.containsKey(ID)) return false;
         Reservation r = new Reservation(ID, clientID, flightsID);
-        Client c = (Client) this.users.get(clientID);
-        Map<String, Reservation> clientReserves = c.getReservations();
-        if (!clientReserves.containsKey(r.getID())) c.addReservation(r);
+
+        Set<String> reservationsByClient;
+        if (this.clientReservations.containsKey(clientID))
+            reservationsByClient = this.clientReservations.get(clientID);
+        else
+            reservationsByClient = new HashSet<>();
+
+        reservationsByClient.add(ID);
+        this.clientReservations.put(clientID, reservationsByClient);
+
         for(String fId : flightsID){
             Flight f = this.flights.get(fId);
             f.addOneReservation();
@@ -505,4 +460,20 @@ public class Model {
         return ans;
     }
 
+    public void serialize(String filepath) throws IOException {
+        FileOutputStream fos = new FileOutputStream(filepath);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(this);
+        oos.close();
+        fos.close();
+    }
+
+    public static Model deserialize(String filepath) throws IOException, ClassNotFoundException {
+        FileInputStream fis = new FileInputStream(filepath);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Model accounts = (Model) ois.readObject();
+        ois.close();
+        fis.close();
+        return accounts;
+    }
 }

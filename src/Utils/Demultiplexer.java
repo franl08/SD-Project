@@ -60,8 +60,8 @@ public class Demultiplexer {
         tc.send(frame);
     }
 
-    public void send(int tag, char isClient, String username, byte[] data) throws IOException {
-        tc.send(tag, isClient, username, data);
+    public void send(int tag, String username, byte[] data) throws IOException {
+        tc.send(tag, username, data);
     }
 
     public byte[] receive(int tag) throws IOException, InterruptedException {

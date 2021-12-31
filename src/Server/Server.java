@@ -6,20 +6,37 @@ import Utils.City;
 import Utils.TaggedConnection.Frame;
 import Utils.TaggedConnection;
 
+import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class Server {
 
     public static void main(String[] args) throws Exception {
 
         ServerSocket ss = new ServerSocket(12345);
-        Model model = new Model();
-        // TODO: Se o servidor existir fetch contas
+        Model model;
+
+        /*
+
+                Gets data saved from file
+
+         */
+
+        File file = new File("model.ser");
+        if (file.exists())
+            model = Model.deserialize("model.ser");
+        else
+            model = new Model();
 
         while(true) {
+
+            /*
+
+                Creates one connection per client and handles it in a thread
+
+             */
             Socket s = ss.accept();
             TaggedConnection connection = new TaggedConnection(s);
 
@@ -30,43 +47,48 @@ public class Server {
                     while (true) {
 
                         Frame f = connection.receive();
-                        boolean isClient = f.isClient == '1';
 
                         if (f.tag == 0) { // Login attempt
 
-                            String answer = "0";
+                            System.out.println("Login attempt.");
+                            String answer = "Error";
 
-                            if (model.checkAutentication(f.username, new String(f.data)))
-                                answer = "1";
+                            if (model.checkAuthentication(f.username, new String(f.data)))
+                                answer = "Success";
 
-                            connection.send(f.tag, f.isClient, "", answer.getBytes());
+                            connection.send(f.tag, "", answer.getBytes());
 
-                        } else if (f.tag == 1) { // Registration attempts
+                        } else if (f.tag == 1) { // Registration attempts TODO: Fazer serialize quando se adicionar 1 conta
 
-                            String username = f.username;
+                            System.out.println("Registration attempt.");
+                            String email = f.username;
                             String password = new String(f.data);
 
-                            String answer = "0";
+                            String answer = "Error";
 
-                            if (!model.lookupUser(username) && isClient) {
-                                answer = "1"; // Success
+                            if (model.addClient(email, password))
+                                answer = "Success";
 
-                                // Criar cliente
+                            connection.send(f.tag, "", answer.getBytes());
 
-                            } else if (!isClient)
-                                answer = "2"; // Admin can't perform registration
 
-                            connection.send(f.tag, f.isClient, "", answer.getBytes());
                         } else if (f.tag == 2) { // Add flight information
 
-                            String flightData = new String(f.data);
-                            String[] flightDataParsed = flightData.split(" ");
-                            String id = "12345"; // TODO: FIX ID GENERATION
-                            // TODO: WHAT IS TOGO?
-                            Flight flight = new Flight(id, Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0]),  City.valueOf(flightDataParsed[1]), true,  LocalDate.parse(flightDataParsed[4]));
-                            model.addFlight(flight);
+                            String answer = "No admin privileges.";
 
-                            // TODO: ANSWER WITH SUCCESS OF FAIL
+                            if (f.username.equals("admin")) {
+
+                                String flightData = new String(f.data);
+                                String[] flightDataParsed = flightData.split(" ");
+                                String id = "12345"; // TODO: FIX ID GENERATION
+                                // TODO: WHAT IS TOGO?
+                                Flight flight = new Flight(id, Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0]), City.valueOf(flightDataParsed[1]), true, LocalDate.parse(flightDataParsed[4]));
+                                model.addFlight(flight);
+                                answer = "Success";
+                            }
+
+                            connection.send(f.tag, f.username, answer.getBytes());
+
                         } else if (f.tag == 3) { // End a day
 
                             String date = new String(f.data);
@@ -95,15 +117,12 @@ public class Server {
                         }
                     }
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception ignored) {}
 
             };
 
             Thread t = new Thread(worker);
             t.start();
-
 
         }
     }

@@ -14,13 +14,11 @@ public class TaggedConnection implements AutoCloseable{
 
     public static class Frame {
         public final int tag;
-        public final char isClient;
         public final String username;
         public final byte[] data;
 
-        public Frame(int tag, char isClient, String username, byte[] data) {
+        public Frame(int tag, String username, byte[] data) {
             this.tag = tag;
-            this.isClient = isClient;
             this.username = username;
             this.data = data; }
     }
@@ -34,7 +32,6 @@ public class TaggedConnection implements AutoCloseable{
         try {
             wl.lock();
             this.dos.writeInt(frame.tag);
-            this.dos.writeChar(frame.isClient);
             this.dos.writeUTF(frame.username);
             this.dos.writeInt(frame.data.length);
             this.dos.write(frame.data);
@@ -45,19 +42,17 @@ public class TaggedConnection implements AutoCloseable{
         }
     }
 
-    public void send(int tag, char isClient, String username, byte[] data) throws IOException {
-        this.send(new Frame(tag, isClient, username, data));
+    public void send(int tag, String username, byte[] data) throws IOException {
+        this.send(new Frame(tag, username, data));
     }
 
     public Frame receive() throws IOException {
         int tag;
-        char isClient;
         String username;
         byte[] data;
         try {
             rl.lock();
             tag = this.dis.readInt();
-            isClient = this.dis.readChar();
             username = this.dis.readUTF();
             int n = this.dis.readInt();
             data = new byte[n];
@@ -66,7 +61,7 @@ public class TaggedConnection implements AutoCloseable{
         finally {
             rl.unlock();
         }
-        return new Frame(tag, isClient, username, data);
+        return new Frame(tag, username, data);
     }
 
     public void close() throws IOException {
