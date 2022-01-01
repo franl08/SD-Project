@@ -1,5 +1,6 @@
 package Server;
 
+import Exceptions.EmailAlreadyExistsException;
 import Model.Model;
 import Model.Flight;
 import Utils.City;
@@ -65,9 +66,12 @@ public class Server {
                             String password = new String(f.data);
 
                             String answer = "Error";
-
-                            if (model.addClient(email, password))
+                            try {
+                                model.addClient(email, password);
                                 answer = "Success";
+                            } catch (EmailAlreadyExistsException e){
+                                answer = "Error";
+                            }
 
                             connection.send(f.tag, "", answer.getBytes());
 

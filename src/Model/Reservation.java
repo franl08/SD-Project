@@ -28,6 +28,10 @@ public class Reservation {
         return this.ID;
     }
 
+    public void setID(String id){
+        this.ID = id;
+    }
+
     public Set<String> getFlightsID() {
         return new HashSet<>(this.flightsID);
     }

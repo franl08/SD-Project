@@ -1,8 +1,10 @@
 package Model;
 
+import Exceptions.*;
 import Utils.City;
 import Utils.Utilities;
 
+import java.awt.image.renderable.RenderableImage;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
@@ -89,19 +91,19 @@ public class Model {
         return this.clients.containsKey(username);
     }
 
-    public boolean addClient(String email, String password) {
-        if (this.clients.containsKey(email)) return false;
+    public void addClient(String email, String password) throws EmailAlreadyExistsException {
+        if (this.clients.containsKey(email)) throw new EmailAlreadyExistsException();
         this.clients.put(email,password);
-        return true;
     }
 
     public void addFlight(Flight f){
-        this.flights.put(f.getID(), f);
+        f.setID(this.generateFlightID());
+        this.flights.put(f.getID(), f.clone());
     }
 
     public void addReservation(String email, Reservation r) {
-
-        this.reservations.put(r.getID(), r); // TODO: Verificaçao?
+        r.setID(this.generateReservationID());
+        this.reservations.put(r.getID(), r.clone());
 
         Set<String> reserv;
 
@@ -114,12 +116,14 @@ public class Model {
         this.clientReservations.put(email, reserv);
     }
 
-    public Reservation getReservation(String s){
-        return this.reservations.get(s).clone();
+    public Reservation getReservation(String s) throws ReservationDoesntExistException {
+        if(this.reservations.containsKey(s)) return this.reservations.get(s).clone();
+        else throw new ReservationDoesntExistException("There isn't any reservation with ID " + s);
     }
 
-    public Flight getFlight(String s){
-        return flights.get(s);
+    public Flight getFlight(String s) throws FlightDoesntExistException {
+        if(this.reservations.containsKey(s)) return this.flights.get(s).clone();
+        else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
     }
 
     public Map<String, Reservation> getReservationsFromFlight(String s){
@@ -142,43 +146,44 @@ public class Model {
         return ans;
     }
 
-    public boolean removeFlight(String s){
+    public void removeFlight(String s) throws FlightDoesntExistException{
         if(this.flights.containsKey(s)){
             Map<String, Reservation> reservationsOfFlight = getReservationsFromFlight(s);
             if(!reservationsOfFlight.isEmpty())
                 for(String code : reservationsOfFlight.keySet())
-                    removeReservation(code);
+                    try {
+                        removeReservation(code);
+                    } catch (Exception ignored){}
             this.flights.remove(s);
-            return true;
         }
-        return false;
+        else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
     }
 
-    public boolean removeReservationByClient(String reservationID, String currentUser){
+    public void removeReservationByClient(String reservationID, String currentUser) throws DoesntExistReservationFromClient{
         if(this.reservations.containsKey(reservationID)) {
             String username = this.reservations.get(reservationID).getClientID();
             if (this.clients.containsKey(username) && currentUser.equals(username)) {
                 this.clientReservations.remove(reservationID);
             }
         }
-        return false;
+        else throw new DoesntExistReservationFromClient("Doesn't exist any reservation with ID " + reservationID + "from you.");
     }
 
-    public boolean removeReservation(String reservationID) {
+    public void removeReservation(String reservationID) throws ReservationDoesntExistException {
         if(this.reservations.containsKey(reservationID)) {
             String username = this.reservations.get(reservationID).getClientID();
             if (this.clients.containsKey(username)) {
                 this.clientReservations.remove(reservationID);
             }
         }
-        return false;
+        else throw new ReservationDoesntExistException("There isn't any reservation with ID " + reservationID);
     }
 
-    public boolean createFlight(String ID, int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date){
-        if(flights.containsKey(ID) || closedDays.contains(date)) return false;
-        Flight f = new Flight(ID, nMaxPassengers, nReserve, origin, destination, toGo, date);
-        this.flights.put(f.getID(), f);
-        return true;
+    public void createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
+        if(closedDays.contains(date)) throw new UnavailableFlightException("The flight is in a closed day.");
+        String fID = this.generateFlightID();
+        Flight f = new Flight(fID, nMaxPassengers, nReserve, origin, destination, toGo, date);
+        this.flights.put(fID, f);
     }
 
     public boolean checkSetOfFlightsToReservation(Set<String> flightsID){
@@ -189,9 +194,10 @@ public class Model {
         return true;
     }
 
-    public boolean createReservation(String ID, String clientID, Set<String> flightsID){
-        if(checkSetOfFlightsToReservation(flightsID) || reservations.containsKey(ID)) return false;
-        Reservation r = new Reservation(ID, clientID, flightsID);
+    public void createReservation(String clientID, Set<String> flightsID) throws UnavailableFlightException {
+        if(checkSetOfFlightsToReservation(flightsID)) throw new UnavailableFlightException("One of the desired flight has reached its maximum capacity.");
+        String reservationID = this.generateReservationID();
+        Reservation r = new Reservation(reservationID, clientID, flightsID);
 
         Set<String> reservationsByClient;
         if (this.clientReservations.containsKey(clientID))
@@ -199,7 +205,7 @@ public class Model {
         else
             reservationsByClient = new HashSet<>();
 
-        reservationsByClient.add(ID);
+        reservationsByClient.add(reservationID);
         this.clientReservations.put(clientID, reservationsByClient);
 
         for(String fId : flightsID){
@@ -207,19 +213,21 @@ public class Model {
             f.addOneReservation();
         }
         this.reservations.put(r.getID(), r);
-        return true;
     }
 
-    public boolean addClosedDay(LocalDate date){
+    public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDay {
         if(!this.closedDays.contains(date)){
             this.closedDays.add(date);
             for(String key : flights.keySet()){
                 Flight f = flights.get(key);
-                if(f.getDate().equals(date)) removeFlight(key);
+                if(f.getDate().equals(date)){
+                    try{
+                        removeFlight(key);
+                    } catch (Exception ignored){}
+                }
             }
-            return true;
         }
-        return false;
+        else throw new AlreadyIsAClosedDay("The selected day is already closed.");
     }
 
     public void removeClosedDay(LocalDate date){
@@ -230,7 +238,7 @@ public class Model {
         List<Flight> flights = new ArrayList<>();
         for(String key : this.flights.keySet()){
             Flight f = this.flights.get(key);
-            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination)) flights.add(f);
+            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination)) flights.add(f.clone());
         }
         return flights;
     }
@@ -239,7 +247,7 @@ public class Model {
         List<Flight> flights = new ArrayList<>();
         for(String key : this.flights.keySet()){
             Flight f = this.flights.get(key);
-            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination) && f.getDate().equals(date)) flights.add(f);
+            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination) && f.getDate().equals(date)) flights.add(f.clone());
         }
         return flights;
     }
@@ -248,12 +256,30 @@ public class Model {
         List<Flight> flights = new ArrayList<>();
         for(String key : this.flights.keySet()){
             Flight f = this.flights.get(key);
-            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination) && Utilities.isInRange(begin, end, f.getDate())) flights.add(f);
+            if(f.getOrigin().equals(origin) && f.getDestination().equals(destination) && Utilities.isInRange(begin, end, f.getDate())) flights.add(f.clone());
         }
         return flights;
     }
 
-    // QUESTION 5 feita à padeiro -> pra já, dá para até 2 escalas, mas isto tá muito ineficiente (estupidamente), penso que tbm devia-se evitar os cases, mas não tou a ver como fazer
+    // Don't know if this works...
+    public String generateFlightID(){
+        String lastID = "";
+        for(String s : this.flights.keySet())
+            lastID = s; // recolhe o ID do último voo ig (não sei como funciona a organização interna dos maps, se "ordenar" acho q este método funciona)
+        if(lastID.equals("")) return "F" + 1; // se o map tiver vazio, o ID do Flight poderá ser F1
+        String[] formated = lastID.split("F");
+        return "R" + Integer.parseInt(formated[1]) + 1; // id do Flight será F seguido pelo número seguinte ao último inserido
+    }
+
+    // funcionamento semelhante ao generateFlightID
+    public String generateReservationID(){
+        String lastID = "";
+        for(String s : this.reservations.keySet())
+            lastID = s;
+        if(lastID.equals("")) return "R" + 1;
+        String[] formated = lastID.split("R");
+        return "R" + Integer.parseInt(formated[1]) + 1;
+    }
 
     public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
         List<Flight> ans = new ArrayList<>();
@@ -263,6 +289,44 @@ public class Model {
         return ans;
     }
 
+    /* Question 5 otimizada (não sei se funfa tho)
+    public List<List<Flight>> getPossibleTrip(List<Flight> fs, List<List<Flight>> compared, LocalDate end){
+        List<List<Flight>> ans = new ArrayList<>();
+        for(Flight f : fs){
+            for(List<Flight> possibleT : compared) {
+                int size = possibleT.size();
+                if (Utilities.isInRange(f.getDate(), possibleT.get(size - 1).getDate(), end)){ // se estiver numa data possível, cria uma lista com os voos
+                    List<Flight> toAdd = new ArrayList<>(possibleT);
+                    toAdd.add(f); // acho q não precisa de ter clone pq eles já vêm clonados do getFlightsWithOriginDestinationAndDateRange
+                    ans.add(toAdd);
+                }
+            }
+        }
+        return ans;
+    }
+
+    public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
+        List<List<Flight>> compared = new ArrayList<>();
+        List<Route> ans = new ArrayList<>();
+        for(int i = 0; i < desiredCities.size() - 2; i++){
+            City o = desiredCities.get(i);
+            City d = desiredCities.get(i + 1);
+            List<Flight> fs = getFlightsWithOriginDestinationAndDateRange(o, d, begin, end);
+            if(i != 0)
+                compared = getPossibleTrip(fs, compared);
+            else
+                compared.add(fs);
+        }
+        if(compared.size() == 0) return ans; // não existe nenhuma opção viável
+        for(List<Flight> fs : compared){
+            Route r = new Route(desiredCities.get(0), desiredCities.get(desiredCities.size() - 1), fs); // passa de lista de listas para lista de rotas
+            ans.add(r);
+        }
+        return ans;
+    }
+    */
+
+    // QUESTION 5 feita à padeiro -> pra já, dá para até 2 escalas, mas isto tá muito ineficiente (estupidamente), penso que tbm devia-se evitar os cases, mas não tou a ver como fazer
     public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
         List<Route> routes = new ArrayList<>();
         switch(desiredCities.size() - 2){
@@ -346,7 +410,7 @@ public class Model {
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
             Flight f = this.flights.get(id);
-            if(f.getOrigin().equals(c)) ans.add(f);
+            if(f.getOrigin().equals(c)) ans.add(f.clone());
         }
         return ans;
     }
@@ -355,7 +419,7 @@ public class Model {
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
             Flight f = this.flights.get(id);
-            if(f.getDestination().equals(c)) ans.add(f);
+            if(f.getDestination().equals(c)) ans.add(f.clone());
         }
         return ans;
     }
@@ -364,7 +428,7 @@ public class Model {
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
             Flight f = this.flights.get(id);
-            if(f.getDestination().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f);
+            if(f.getDestination().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f.clone());
         }
         return ans;
     }
@@ -373,7 +437,7 @@ public class Model {
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
             Flight f = this.flights.get(id);
-            if(f.getOrigin().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f);
+            if(f.getOrigin().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f.clone());
         }
         return ans;
     }
@@ -383,7 +447,7 @@ public class Model {
         Set<Flight> ans = new HashSet<>();
         for(String id : this.flights.keySet()){
             Flight f = this.flights.get(id);
-            if(f.getDestination() != c1 && f.getDestination() != c2 && f.getOrigin() != c1 && f.getOrigin() != c2) ans.add(f);
+            if(f.getDestination() != c1 && f.getDestination() != c2 && f.getOrigin() != c1 && f.getOrigin() != c2) ans.add(f.clone());
         }
         return ans;
     }

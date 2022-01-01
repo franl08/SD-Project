@@ -41,6 +41,10 @@ public class Flight {
         return this.ID;
     }
 
+    public void setID(String id){
+        this.ID = id;
+    }
+
     public int getnMaxPassengers() {
         return this.nMaxPassengers;
     }
