@@ -135,14 +135,14 @@ public class Model {
         StringBuilder sb = new StringBuilder();
         for(String id : this.flights.keySet())
             sb.append(this.flights.get(id).toString());
-        return sb.toString();
+        return (!sb.isEmpty()) ? sb.toString() : "No flights to show";
     }
 
     public String getFlightsStringInDate(LocalDate date){
         StringBuilder sb = new StringBuilder();
         for(String id : this.flights.keySet())
             if(this.flights.get(id).getDate().equals(date)) sb.append(this.flights.get(id).toString());
-        return sb.toString();
+        return (!sb.isEmpty()) ? sb.toString() : "No flights to show";
     }
 
     public Map<String, Reservation> getReservationsFromFlight(String s){
@@ -178,9 +178,13 @@ public class Model {
         else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
     }
 
-    public void removeReservationByClient(String reservationID, String currentUser) throws DoesntExistReservationFromClient{
+    public void removeReservationByClient(String reservationID, String currentUser) throws DoesntExistReservationFromClient, FlightAlreadyDeparted{
         if(this.reservations.containsKey(reservationID)) {
             String username = this.reservations.get(reservationID).getClientID();
+            Set<String> fs = this.reservations.get(reservationID).getFlightsID();
+            for(String id : fs){
+                if(!this.flights.get(id).getToGo()) throw new FlightAlreadyDeparted("The flight with ID " + id + " already departed.");
+            }
             if (this.clients.containsKey(username) && currentUser.equals(username)) {
                 this.clientReservations.remove(reservationID);
             }
@@ -198,23 +202,25 @@ public class Model {
         else throw new ReservationDoesntExistException("There isn't any reservation with ID " + reservationID);
     }
 
-    public void createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
+    public String createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
         if(closedDays.contains(date)) throw new UnavailableFlightException("The flight is in a closed day.");
         String fID = this.generateFlightID();
         Flight f = new Flight(fID, nMaxPassengers, nReserve, origin, destination, toGo, date);
         this.flights.put(fID, f);
+        return fID;
     }
 
-    public boolean checkSetOfFlightsToReservation(Set<String> flightsID){
+    public void checkSetOfFlightsToReservation(Set<String> flightsID) throws UnavailableFlightException, FlightAlreadyDeparted, FlightDoesntExistException{
         for(String fID : flightsID){
-            Flight f = this.flights.get(fID);
-            if(!f.hasFreeSpace()) return false;
+            Flight f = this.flights.getOrDefault(fID, null);
+            if(f == null) throw new FlightDoesntExistException();
+            else if(!f.hasFreeSpace()) throw new UnavailableFlightException();
+            else if(!f.getToGo()) throw new FlightAlreadyDeparted();
         }
-        return true;
     }
 
-    public void createReservation(String clientID, Set<String> flightsID) throws UnavailableFlightException {
-        if(checkSetOfFlightsToReservation(flightsID)) throw new UnavailableFlightException("One of the desired flight has reached its maximum capacity.");
+    public String createReservation(String clientID, Set<String> flightsID) throws FlightDoesntExistException, UnavailableFlightException, FlightAlreadyDeparted {
+        checkSetOfFlightsToReservation(flightsID);
         String reservationID = this.generateReservationID();
         Reservation r = new Reservation(reservationID, clientID, flightsID);
 
@@ -232,6 +238,7 @@ public class Model {
             f.addOneReservation();
         }
         this.reservations.put(r.getID(), r);
+        return reservationID;
     }
 
     public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDay {

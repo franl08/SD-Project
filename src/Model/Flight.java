@@ -98,10 +98,13 @@ public class Flight {
 
     public String toString(){
         StringBuilder sb = new StringBuilder();
-        sb.append("ID: ").append(this.ID).append(" Max Passengers: ").append(this.nMaxPassengers)
-                .append(" Number Of Reservations: ").append(this.nReservations)
-                .append(" Origin: ").append(this.origin.toString()).append(" Destination: ")
-                .append(this.destination.toString()).append(" Date: ").append(this.date);
+        sb.append("ID: ").append(this.ID).append("\n")
+                .append("Max Passengers: ").append(this.nMaxPassengers).append("\n")
+                .append("Number Of Reservations: ").append(this.nReservations).append("\n")
+                .append("Origin: ").append(this.origin.toString())
+                .append("Destination: ").append(this.destination.toString()).append("\n")
+                .append("Date: ").append(this.date).append("\n")
+                .append("------------------------------------------------------------------\n");
         return sb.toString();
     }
 
