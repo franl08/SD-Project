@@ -96,4 +96,13 @@ public class Flight {
         return f.getID().equals(this.ID);
     }
 
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID: ").append(this.ID).append(" Max Passengers: ").append(this.nMaxPassengers)
+                .append(" Number Of Reservations: ").append(this.nReservations)
+                .append(" Origin: ").append(this.origin.toString()).append(" Destination: ")
+                .append(this.destination.toString()).append(" Date: ").append(this.date);
+        return sb.toString();
+    }
+
 }

@@ -131,6 +131,20 @@ public class Model {
         else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
     }
 
+    public String getFlightsString(){
+        StringBuilder sb = new StringBuilder();
+        for(String id : this.flights.keySet())
+            sb.append(this.flights.get(id).toString());
+        return sb.toString();
+    }
+
+    public String getFlightsStringInDate(LocalDate date){
+        StringBuilder sb = new StringBuilder();
+        for(String id : this.flights.keySet())
+            if(this.flights.get(id).getDate().equals(date)) sb.append(this.flights.get(id).toString());
+        return sb.toString();
+    }
+
     public Map<String, Reservation> getReservationsFromFlight(String s){
         Map<String, Reservation> ans = new HashMap<>();
         if(!this.reservations.isEmpty())
