@@ -56,8 +56,13 @@ public class Server {
                             System.out.println("Login attempt.");
                             String answer = "Error";
 
-                            if (model.checkAuthentication(f.username, new String(f.data)))
-                                answer = "Success";
+                            model.l.readLock().lock();
+                            try {
+                                if (model.checkAuthentication(f.username, new String(f.data)))
+                                    answer = "Success";
+                            } finally {
+                                model.l.readLock().unlock();
+                            }
 
                             connection.send(f.tag, "", answer.getBytes());
 
@@ -68,6 +73,8 @@ public class Server {
                             String password = new String(f.data);
 
                             String answer;
+
+                            model.l.writeLock().lock();
                             try {
                                 model.addClient(email, password);
                                 answer = "Success";
@@ -76,6 +83,8 @@ public class Server {
                                 System.out.println("Serialized.");
                             } catch (EmailAlreadyExistsException e){
                                 answer = "Error";
+                            } finally {
+                                model.l.writeLock().unlock();
                             }
                             connection.send(f.tag, "", answer.getBytes());
 
@@ -90,6 +99,8 @@ public class Server {
 
                                 String flightData = new String(f.data);
                                 String[] flightDataParsed = flightData.split(" ");
+
+                                model.l.writeLock().lock();
                                 try {
                                     answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0]), City.valueOf(flightDataParsed[1]), true, LocalDate.parse(flightDataParsed[3]));
                                     System.out.println("Serializing...");
@@ -97,6 +108,8 @@ public class Server {
                                     System.out.println("Serialized.");
                                 } catch (UnavailableFlightException | IllegalArgumentException e) {
                                     answer = "Error";
+                                } finally {
+                                    model.l.writeLock().unlock();
                                 }
                             }
 
@@ -109,6 +122,8 @@ public class Server {
                             String answer;
 
                             String date = new String(f.data);
+
+                            model.l.writeLock().lock();
                             try {
                                 model.addClosedDay(LocalDate.parse(date));
                                 answer = "Success";
@@ -117,6 +132,8 @@ public class Server {
                                 System.out.println("Serialized.");
                             } catch (Exception e) {
                                 answer = "Error";
+                            } finally {
+                                model.l.writeLock().unlock();
                             }
 
                             connection.send(f.tag, f.username, answer.getBytes());
@@ -128,16 +145,19 @@ public class Server {
                             String path = new String(f.data);
                             String[] pathParsed = path.split(" ");
                             Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
-
                             String answer;
+
+                            model.l.writeLock().lock();
                             try {
                                 answer = model.createReservation(f.username, pathSet);
                                 System.out.println("Serializing...");
                                 model.serialize("model.ser");
                                 System.out.println("Serialized.");
-
-                            } catch (FlightDoesntExistException | UnavailableFlightException | FlightAlreadyDeparted e) {
+                            } catch (Exception e) {
                                 answer = "Error";
+                                e.printStackTrace();
+                            } finally {
+                                model.l.writeLock().unlock();
                             }
 
                             connection.send(4, f.username, answer.getBytes());
@@ -149,6 +169,8 @@ public class Server {
                             String username = f.username;
                             String id = new String(f.data);
                             String answer;
+
+                            model.l.writeLock().lock();
                             try {
                                 model.removeReservationByClient(id, username);
                                 answer = "Success";
@@ -157,6 +179,8 @@ public class Server {
                                 System.out.println("Serialized.");
                             } catch (DoesntExistReservationFromClient e) {
                                 answer = "Error";
+                            } finally {
+                                model.l.writeLock().unlock();
                             }
 
                             connection.send(5, f.username, answer.getBytes());
@@ -165,18 +189,27 @@ public class Server {
 
                             System.out.println("Listing all flights attempt.");
 
-                            connection.send(6, f.username, model.getFlightsString().getBytes());
+                            model.l.readLock().lock();
+                            try {
+                                connection.send(6, f.username, model.getFlightsString().getBytes());
+                            } finally {
+                                model.l.readLock().unlock();
+                            }
+
 
                         } else if (f.tag == 7) { // List flights in a date
 
                             System.out.println("Listing all flights in a date attempt.");
 
                             String date = new String(f.data);
+                            model.l.readLock().lock();
                             try {
                                 String flightsListing = model.getFlightsStringInDate(LocalDate.parse(date));
                                 connection.send(7, f.username, flightsListing.getBytes());
                             } catch (Exception e) {
                                 connection.send(7, f.username, "Error".getBytes());
+                            } finally {
+                                model.l.readLock().unlock();
                             }
                         }
                     }

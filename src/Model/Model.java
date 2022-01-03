@@ -7,6 +7,10 @@ import Utils.Utilities;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Model implements Serializable {
 
@@ -15,6 +19,8 @@ public class Model implements Serializable {
     private Map<String, Reservation> reservations;
     private Map<String, Set<String>> clientReservations;
     private Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
+
+    public ReadWriteLock l = new ReentrantReadWriteLock();
 
     public Model() {
         this.clients = new HashMap<>();
@@ -224,6 +230,9 @@ public class Model implements Serializable {
         Reservation r = new Reservation(reservationID, clientID, flightsID);
 
         Set<String> reservationsByClient;
+
+        if (this.clientReservations == null) this.clientReservations = new HashMap<>();
+
         if (this.clientReservations.containsKey(clientID))
             reservationsByClient = this.clientReservations.get(clientID);
         else
@@ -553,9 +562,9 @@ public class Model implements Serializable {
         FileOutputStream fos = new FileOutputStream(filepath);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(this);
-        oos.flush();
+        //oos.flush();
         oos.close();
-        fos.flush();
+        //fos.flush();
         fos.close();
     }
 

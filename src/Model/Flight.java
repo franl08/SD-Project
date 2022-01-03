@@ -103,7 +103,7 @@ public class Flight implements Serializable {
                 .append("Max Passengers: ").append(this.nMaxPassengers).append("\n")
                 .append("Number Of Reservations: ").append(this.nReservations).append("\n")
                 .append("Origin: ").append(this.origin.toString())
-                .append("Destination: ").append(this.destination.toString()).append("\n")
+                .append(" -> Destination: ").append(this.destination.toString()).append("\n")
                 .append("Date: ").append(this.date).append("\n")
                 .append("------------------------------------------------------------------\n");
         return sb.toString();
