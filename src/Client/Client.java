@@ -178,14 +178,14 @@ public class Client {
                                 while (!quitListingMenu) {
 
                                     System.out.println(Colors.ANSI_GREEN + "\n********** Listing Menu **********\n" + Colors.ANSI_RESET);
-                                    System.out.println(Colors.ANSI_CYAN + "1 ." + Colors.ANSI_RESET + "Get all flights.");
+                                    System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Get all flights.");
                                     System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Get all flights in a date.");
-                                    System.out.print(Colors.ANSI_YELLOW + "Insert option: ");
+                                    System.out.print(Colors.ANSI_YELLOW + "\nInsert option: ");
                                     String optionSelected = input.readLine();
 
                                     if (optionSelected.equals("1")) {
 
-                                        dm.send(6, username, null);
+                                        dm.send(6, username, "0".getBytes());
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
                                         System.out.println(new String(dm.receive(6)));
 
@@ -237,7 +237,7 @@ public class Client {
                     }
 
                 } else
-                    System.out.println("Unknown credentials");
+                    System.out.println(Colors.ANSI_RED + "\nUnknown credentials" + Colors.ANSI_RESET);
 
             } else if (option.equals("2")) {
 

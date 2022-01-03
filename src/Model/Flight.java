@@ -2,9 +2,10 @@ package Model;
 
 import Utils.City;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Flight {
+public class Flight implements Serializable {
     private String ID;
     private int nMaxPassengers;
     private int nReservations;

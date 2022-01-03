@@ -4,12 +4,11 @@ import Exceptions.*;
 import Utils.City;
 import Utils.Utilities;
 
-import java.awt.image.renderable.RenderableImage;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
 
-public class Model {
+public class Model implements Serializable {
 
     private Map<String, String> clients;
     private Map<String, Flight> flights;
@@ -554,7 +553,9 @@ public class Model {
         FileOutputStream fos = new FileOutputStream(filepath);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(this);
+        oos.flush();
         oos.close();
+        fos.flush();
         fos.close();
     }
 

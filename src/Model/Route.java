@@ -2,10 +2,11 @@ package Model;
 
 import Utils.City;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Route {
+public class Route implements Serializable {
     private City origin;
     private City destination;
     private List<Flight> flights;

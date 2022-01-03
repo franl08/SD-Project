@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TaggedConnection implements AutoCloseable{
+public class TaggedConnection implements Serializable{
 
     private final DataInputStream dis;
     private final DataOutputStream dos;

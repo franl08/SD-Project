@@ -1,9 +1,10 @@
 package Model;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Reservation {
+public class Reservation implements Serializable {
     private String ID;
     private String clientID;
     private Set<String> flightsID;

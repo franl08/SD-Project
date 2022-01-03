@@ -1,9 +1,10 @@
 package Utils;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public enum City {
+public enum City implements Serializable {
     BERLIN,
     VIENNA,
     BRUSSELS,
