@@ -101,7 +101,12 @@ public class Model {
         this.flights.put(f.getID(), f.clone());
     }
 
-    public void addReservation(String email, Reservation r) {
+    public void addReservation(String email, Reservation r) throws FlightDoesntExistException{
+        Set<String> fIDs = r.getFlightsID();
+        for(String id : fIDs){
+            if(!this.flights.containsKey(id)) throw new FlightDoesntExistException("There isn't any flight with ID " + id);
+        }
+
         r.setID(this.generateReservationID());
         this.reservations.put(r.getID(), r.clone());
 
