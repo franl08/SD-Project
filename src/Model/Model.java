@@ -168,6 +168,29 @@ public class Model implements Serializable {
         return ans;
     }
 
+    public String getReservationsStringFromUser(String s){
+        Map<String, Reservation> reservs = getReservationsFromUser(s);
+        int ac = 0;
+        StringBuilder ans = new StringBuilder();
+        if(reservs != null){
+            for(String id : reservs.keySet()){
+                Reservation r = reservs.get(id);
+                ans.append("Reservation ID: ").append(r.getID()).append("\n");
+                Set<String> fIDs = r.getFlightsID();
+                for(String fID : fIDs){
+                    Flight f = this.flights.get(fID);
+                    ans.append("Flight ").append(ac++).append(":\n")
+                            .append("From: ").append(f.getOrigin()).append("\n")
+                            .append("To: ").append(f.getDestination()).append("\n")
+                            .append("On: ").append(f.getDate()).append("\n")
+                            .append("Flight ID: ").append(f.getID()).append("\n");
+                }
+                ans.append("------------------------------------------------------------------\n");
+            }
+        }
+        return ans.toString();
+    }
+
     public void removeFlight(String s) throws FlightDoesntExistException{
         if(this.flights.containsKey(s)){
             Map<String, Reservation> reservationsOfFlight = getReservationsFromFlight(s);
@@ -377,36 +400,6 @@ public class Model implements Serializable {
     }
 
     /*
-    // QUESTION 5 feita à padeiro -> pra já, dá para até 2 escalas, mas isto tá muito ineficiente (estupidamente), penso que tbm devia-se evitar os cases, mas não tou a ver como fazer
-    public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
-        List<Route> routes = new ArrayList<>();
-        switch(desiredCities.size() - 2){
-            case 0:{
-                List<Flight> fs = getFlightsWithOriginDestinationAndDateRange(desiredCities.get(0), desiredCities.get(1), begin, end);
-                List<Flight> availables = getFlightsAvailableForReservationFromList(fs);
-                routes.add(new Route(desiredCities.get(0), desiredCities.get(1), availables));
-            }
-            case 1:{
-                List<List<Flight>> fs = getFlightsWithOneStopOnSameDateWithDateRange(desiredCities.get(0), desiredCities.get(2), begin, end);
-                for(List<Flight> list : fs){
-                    List<Flight> availables = getFlightsAvailableForReservationFromList(list);
-                    Route r = new Route(desiredCities.get(0), desiredCities.get(1), availables);
-                    routes.add(r);
-                }
-            }
-            case 2:{
-                List<List<Flight>> fs = getFlightsWithTwoStopsOnSameDateWithDateRange(desiredCities.get(0), desiredCities.get(2), begin, end);
-                for(List<Flight> list : fs){
-                    List<Flight> availables = getFlightsAvailableForReservationFromList(list);
-                    Route r = new Route(desiredCities.get(0), desiredCities.get(1), availables);
-                    routes.add(r);
-                }
-            }
-
-            // Vale a pena fazer para mais paragens? PLS ALGUÉM SAIBA UMA MANEIRA DE FAZER ISTO DE FORMA + EFICIENTE!!!!!
-        }
-        return routes;
-    }
 
     public List<List<Flight>> getFlightsWithOneStopOnSameDateWithDateRange(City origin, City destination, LocalDate begin, LocalDate end){
         List<List<Flight>> ans = new ArrayList<>();
