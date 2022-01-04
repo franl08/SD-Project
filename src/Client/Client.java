@@ -9,8 +9,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
+/**
+ * Class that represents a client. Needs an instance of Server running to work
+ */
 public class Client {
 
+    /**
+     * Runs the client
+     * @param args Program arguments
+     * @throws IOException I/O errors from socket manipulation
+     * @throws InterruptedException Error from receiving through demultiplexer
+     */
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Socket s = new Socket("localhost", 12345);

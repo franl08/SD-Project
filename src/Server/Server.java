@@ -14,8 +14,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+/**
+ * Class that allows running an instance of a Server
+ */
 public class Server {
 
+    /**
+     * Allows serializing the model to a file
+     * @param model Model
+     */
     public static void serialize(Model model) {
         model.l.writeLock().lock();
         try {
@@ -29,7 +36,13 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    /**
+     * Allows running the server
+     * @param args Program arguments
+     * @throws IOException Exception that comes from opening a server socket
+     * @throws ClassNotFoundException Exception that comes from deserializing
+     */
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         ServerSocket ss = new ServerSocket(12345);
         Model model;

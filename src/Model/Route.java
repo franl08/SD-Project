@@ -1,7 +1,5 @@
 package Model;
 
-import Utils.City;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;

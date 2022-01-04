@@ -10,90 +10,75 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * Class that manages the data from the airline
+ */
 public class Model implements Serializable {
 
+    /**
+     * Stores the clients credentials
+     */
     private final Map<String, String> clients;
+    /**
+     * Stores the existent flights
+     */
     private final Map<String, Flight> flights;
+    /**
+     * Stores the existent reservation
+     */
     private Map<String, Reservation> reservations;
+    /**
+     * Stores the client reservations
+     */
     private Map<String, Set<String>> clientReservations;
-    private Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
+    /**
+     * Stores the closed days
+     */
+    private final Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
 
+    /**
+     * Read write lock
+     */
     public ReadWriteLock l;
 
+    /**
+     * Empty constructor
+     */
     public Model() {
         this.clients = new HashMap<>();
         this.flights = new HashMap<>();
         this.reservations = new HashMap<>();
+        this.clientReservations = new HashMap<>();
         this.closedDays = new HashSet<>();
         this.l = new ReentrantReadWriteLock();
     }
 
-    public Model(Model m) {
-        this.clients = m.getClients();
-        this.flights = m.getFlights();
-        this.reservations = m.getReservations();
-        this.clientReservations = m.getClientReservations();
-        this.closedDays = m.getClosedDays();
-        this.l = new ReentrantReadWriteLock();
-    }
-
-    public Model clone() {
-        return new Model(this);
-    }
-
-    public Map<String, String> getClients(){
-        return new HashMap<>(this.clients);
-    }
-
-    public Map<String, Flight> getFlights(){
+    /**
+     * Gets the closed days
+     * @return Closed days in formatted string
+     */
+    public String getClosedDays() {
         l.readLock().lock();
         try {
-            Map<String, Flight> flights = new HashMap<>();
-            if (!this.flights.isEmpty())
-                for (String code : this.flights.keySet())
-                    flights.put(code, flights.get(code).clone());
-        } finally {
-            l.readLock().unlock();
-        }
-        return flights;
-    }
+            StringBuilder string = new StringBuilder();
 
-    public Map<String, Reservation> getReservations(){
-        l.readLock().lock();
-        try {
-            Map<String, Reservation> reservations = new HashMap<>();
-            if (!this.reservations.isEmpty())
-                for (String code : this.reservations.keySet())
-                    reservations.put(code, reservations.get(code).clone());
-        } finally {
-            l.readLock().unlock();
-        }
-        return reservations;
-    }
+            for (LocalDate date : this.closedDays) {
+                string.append(" * ").append(date).append("\n");
+            }
 
-    public Map<String,Set<String>> getClientReservations() {
-        l.readLock().lock();
-        try {
-            Map<String, Set<String>> clientReservations = new HashMap<>();
-
-            for (Map.Entry<String, Set<String>> entry : this.clientReservations.entrySet())
-                clientReservations.put(entry.getKey(), new HashSet<>(entry.getValue()));
-        } finally {
-            l.readLock().unlock();
-        }
-
-        return clientReservations;
-    }
-
-    public Set<LocalDate> getClosedDays() {
-        l.readLock().lock();
-        try {
-            return new HashSet<>(this.closedDays);
+            string.append("-------------------").append("\n\n");
+            return (string.isEmpty() ? "No closed days to show\n\n" :string.toString());
         } finally {
             l.readLock().unlock();
         }
     }
 
+    /**
+     * Validates the credentials inserted
+     * @param username Email of the user
+     * @param password Password
+     * @return True if the credentials are valid, otherwise False
+     */
     public boolean checkAuthentication(String username, String password){
         l.readLock().lock();
         try {
@@ -104,6 +89,12 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Adds a client to the clients map
+     * @param email Email
+     * @param password Password
+     * @throws EmailAlreadyExistsException There already is a client registered under that email
+     */
     public void addClient(String email, String password) throws EmailAlreadyExistsException {
         l.writeLock().lock();
         try {
@@ -114,16 +105,10 @@ public class Model implements Serializable {
         }
     }
 
-    public Reservation getReservation(String s) throws ReservationDoesntExistException {
-        if(this.reservations.containsKey(s)) return this.reservations.get(s).clone();
-        else throw new ReservationDoesntExistException("There isn't any reservation with ID " + s);
-    }
-
-    public Flight getFlight(String s) throws FlightDoesntExistException {
-        if(this.reservations.containsKey(s)) return this.flights.get(s).clone();
-        else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
-    }
-
+    /**
+     * Gets the flights existent in a formatted string
+     * @return String that holds the flights information
+     */
     public String getFlightsString(){
         l.readLock().lock();
         try {
@@ -136,6 +121,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Gets the flights existent in a formatted string for a specific date
+     * @param date Date
+     * @return String that holds the flights' information from that date
+     */
     public String getFlightsStringInDate(LocalDate date){
         l.readLock().lock();
         try {
@@ -148,6 +138,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Gets the reservations that contain a certain flight
+     * @param s Flight ID
+     * @return Map with the reservations
+     */
     public Map<String, Reservation> getReservationsFromFlight(String s){
         l.readLock().lock();
         try {
@@ -155,7 +150,8 @@ public class Model implements Serializable {
             if (!this.reservations.isEmpty())
                 for (String code : this.reservations.keySet()) {
                     Reservation r = this.reservations.get(code);
-                    if (r.isToFlight(s)) ans.put(code, r.clone());
+                    Set<String> fIDs = r.getFlightsID();
+                    if (fIDs.contains(s)) ans.put(code, r.clone());
                 }
             return ans;
         } finally {
@@ -163,6 +159,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Gets the reservations made by a user
+     * @param s User ID
+     * @return Map with the reservations
+     */
     public Map<String, Reservation> getReservationsFromUser(String s){
 
         l.readLock().lock();
@@ -183,7 +184,13 @@ public class Model implements Serializable {
 
     }
 
+    /**
+     * Formats the reservations by a user to a string
+     * @param s User ID
+     * @return Formatted string with the reservations
+     */
     public String getReservationsStringFromUser(String s){
+
         l.readLock().lock();
         try {
             Map<String, Reservation> reservs = getReservationsFromUser(s);
@@ -209,8 +216,14 @@ public class Model implements Serializable {
         } finally {
             l.readLock().unlock();
         }
+
     }
 
+    /**
+     * Removes a flight
+     * @param s ID of the flight
+     * @throws FlightDoesntExistException No flight with that ID is registered
+     */
     public void removeFlight(String s) throws FlightDoesntExistException{
         l.writeLock().lock();
         try {
@@ -229,6 +242,13 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Removes a reservation, by request of a client
+     * @param reservationID ID of the reservation
+     * @param username Email of the client
+     * @throws DoesntExistReservationFromClient Client doesn't have a reservation with that ID
+     * @throws FlightAlreadyDeparted Flight has already departed
+     */
     public void removeReservationByClient(String reservationID, String username) throws DoesntExistReservationFromClient, FlightAlreadyDeparted{
         l.writeLock().lock();
         try {
@@ -254,6 +274,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Removes a reservation
+     * @param reservationID ID
+     * @throws ReservationDoesntExistException No reservation is registered under that ID
+     */
     public void removeReservation(String reservationID) throws ReservationDoesntExistException {
         l.writeLock().lock();
         try {
@@ -273,6 +298,17 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Creates a flight
+     * @param nMaxPassengers Maximum number of passengers
+     * @param nReserve Number of reservations already made (normally 0)
+     * @param origin City of origin
+     * @param destination City of destination
+     * @param toGo True if the flight hasn't left yet, false otherwise
+     * @param date Date
+     * @return ID of the flight generated
+     * @throws UnavailableFlightException Can't add flight because the date is closed
+     */
     public String createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
         l.writeLock().lock();
         try {
@@ -286,6 +322,13 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Checks if all the flights are free to be placed in a reservation
+     * @param flightsID List of flights ID's
+     * @throws UnavailableFlightException Flight is full
+     * @throws FlightAlreadyDeparted Flight already left
+     * @throws FlightDoesntExistException Flight doesn't exist
+     */
     public void checkSetOfFlightsToReservation(Set<String> flightsID) throws UnavailableFlightException, FlightAlreadyDeparted, FlightDoesntExistException{
         l.readLock().lock();
         try {
@@ -300,6 +343,15 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Creates a reservation
+     * @param clientID ID of the client
+     * @param flightsID List of flight IDS
+     * @return Reservation code
+     * @throws FlightDoesntExistException A flight does not exist
+     * @throws UnavailableFlightException A flight is unavailable
+     * @throws FlightAlreadyDeparted A flight has already left
+     */
     public String createReservation(String clientID, Set<String> flightsID) throws FlightDoesntExistException, UnavailableFlightException, FlightAlreadyDeparted {
         l.writeLock().lock();
         try {
@@ -331,6 +383,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Adds a closed day, removing the flights on that day
+     * @param date Date
+     * @throws AlreadyIsAClosedDay Already is a closed day
+     */
     public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDay {
         l.writeLock().lock();
         try {
@@ -350,6 +407,11 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Removes a closed day
+     * @param date Date
+     * @throws NotAClosedDay The date is not closed
+     */
     public void removeClosedDay(LocalDate date) throws NotAClosedDay{
         l.writeLock().lock();
         try {
@@ -360,6 +422,14 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Collects all the flights with a certain origin and destination, between a date range
+     * @param origin Origin
+     * @param destination Destination
+     * @param begin Inferior limit
+     * @param end Superior limit
+     * @return List of flight IDS
+     */
     public List<Flight> getFlightsWithOriginDestinationAndDateRange(City origin, City destination, LocalDate begin, LocalDate end){
         l.readLock().lock();
         try {
@@ -377,6 +447,10 @@ public class Model implements Serializable {
 
     }
 
+    /**
+     * Generates a flight ID
+     * @return Flight ID
+     */
     public String generateFlightID(){
         String lastID = "";
         int mostRecent = 1;
@@ -395,6 +469,10 @@ public class Model implements Serializable {
         }
     }
 
+    /**
+     * Generates a reservation ID
+     * @return Reservation ID
+     */
     public String generateReservationID(){
         String lastID = "";
         int mostRecent = 1;
@@ -421,23 +499,35 @@ public class Model implements Serializable {
         return ans;
     }
 
-    //Question 5 otimizada (não sei se funfa tho)
+    /**
+     * Gets a list of possible trips
+     * @param fs Flights ID
+     * @param compared Flights to check if it's possible to make a route
+     * @param end Future limit date
+     * @return Updated compare
+     */
     public List<List<Flight>> getPossibleTrip(List<Flight> fs, List<List<Flight>> compared, LocalDate end){
         List<List<Flight>> ans = new ArrayList<>();
         for (Flight f : fs) {
             for (List<Flight> possibleT : compared) {
                 int size = possibleT.size();
-                if (Utilities.isInRange(possibleT.get(size - 1).getDate(), end, f.getDate())) { // se estiver numa data possível, cria uma lista com os voos
+                if (Utilities.isInRange(possibleT.get(size - 1).getDate(), end, f.getDate())) {
                     List<Flight> toAdd = new ArrayList<>(possibleT);
-                    toAdd.add(f); // acho q não precisa de ter clone pq eles já vêm clonados do getFlightsWithOriginDestinationAndDateRange
+                    toAdd.add(f);
                     ans.add(toAdd);
                 }
             }
         }
-        System.out.println("Results " + ans.size());
         return ans;
     }
 
+    /**
+     * Get the available routes between a data range
+     * @param desiredCities Cities desired
+     * @param begin Begin date
+     * @param end Maximum end date
+     * @return Routes
+     */
     public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
         List<List<Flight>> compared = new ArrayList<>();
         List<Route> ans = new ArrayList<>();
@@ -458,6 +548,12 @@ public class Model implements Serializable {
         return ans;
     }
 
+    /**
+     * Creates a reservation according to a list of routes
+     * @param username Client ID
+     * @param routes Routes possibles
+     * @return Reservation ID
+     */
     public String createReservationGivenListRoutes(String username, List<Route> routes){
         String reservationID = "";
         for(Route r : routes){
@@ -472,6 +568,14 @@ public class Model implements Serializable {
         return reservationID;
     }
 
+    /**
+     * Creates reservations according to a list of cities
+     * @param username ID of the client
+     * @param desiredCities Cities to travel through
+     * @param begin Beginning of the date range
+     * @param end End of the date range
+     * @return Reservation rode
+     */
     public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end){
         return createReservationGivenListRoutes(username, getAvailableRoutesInDataRange(desiredCities, begin, end));
     }
@@ -645,6 +749,12 @@ public class Model implements Serializable {
         return ans;
     }
     */
+
+    /**
+     * Serializes the model to a filepath
+     * @param filepath Filepath
+     * @throws IOException File manipulation
+     */
     public void serialize(String filepath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filepath);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -655,6 +765,13 @@ public class Model implements Serializable {
         fos.close();
     }
 
+    /**
+     * Deserializes a model from a filepath
+     * @param filepath Filepath
+     * @return Model deserialized
+     * @throws IOException I/O errors from file manipulation
+     * @throws ClassNotFoundException The class of the serialized object cannot be found
+     */
     public static Model deserialize(String filepath) throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(filepath);
         ObjectInputStream ois = new ObjectInputStream(fis);

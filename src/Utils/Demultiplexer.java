@@ -1,7 +1,6 @@
 package Utils;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,13 +8,31 @@ import java.util.Queue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Allows connecting the client with the server
+ */
 public class Demultiplexer {
 
+    /**
+     * Tagged connection
+     */
     private TaggedConnection tc;
+    /**
+     * Lock
+     */
     private ReentrantLock l = new ReentrantLock();
+    /**
+     * Map with the frame values
+     */
     private Map<Integer, FrameValue> map = new HashMap<>();
+    /**
+     * Exception
+     */
     private IOException exception = null;
 
+    /**
+     * Represents a frame value
+     */
     private class FrameValue {
         int waiters = 0;
         Queue<byte[]> queue = new ArrayDeque<>();
@@ -26,10 +43,17 @@ public class Demultiplexer {
         }
     }
 
-    public Demultiplexer(TaggedConnection conn) throws IOException {
+    /**
+     * Constructor
+     * @param conn Tagged Connection
+     */
+    public Demultiplexer(TaggedConnection conn) {
         this.tc = conn;
     }
 
+    /**
+     * Starts the demultiplexer
+     */
     public void start() {
         new Thread(() -> {
             try {
@@ -44,8 +68,7 @@ public class Demultiplexer {
                         }
                         fv.queue.add(frame.data);
                         fv.c.signal();
-                    }
-                    finally {
+                    } finally {
                         l.unlock();
                     }
                 }
@@ -56,15 +79,24 @@ public class Demultiplexer {
         }).start();
     }
 
-
-    public void send(TaggedConnection.Frame frame) throws IOException {
-        tc.send(frame);
-    }
-
+    /**
+     * Sends data through a tagged connection
+     * @param tag Tag
+     * @param username User ID of the client
+     * @param data Data
+     * @throws IOException Tagged connection I/O error
+     */
     public void send(int tag, String username, byte[] data) throws IOException {
         tc.send(tag, username, data);
     }
 
+    /**
+     * Allows receiving data
+     * @param tag Tag
+     * @return Data in bytes
+     * @throws IOException I/O Exception
+     * @throws InterruptedException Interrupted Exception
+     */
     public byte[] receive(int tag) throws IOException, InterruptedException {
         l.lock();
         FrameValue fv;
@@ -95,6 +127,10 @@ public class Demultiplexer {
     }
 
 
+    /**
+     * Closes a tagged connection
+     * @throws IOException I/O error closing
+     */
     public void close() throws IOException {
         tc.close();
     }

@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents a city
+ */
 public enum City implements Serializable {
     BERLIN,
     VIENNA,
@@ -52,6 +55,10 @@ public enum City implements Serializable {
     BANGKOK,
     DUBAI;
 
+    /**
+     * Converts a City to a string
+     * @return String
+     */
     public String toString(){
         switch (this){
             case BERLIN -> {

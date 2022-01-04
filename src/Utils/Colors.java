@@ -1,5 +1,8 @@
 package Utils;
 
+/**
+ * Represents colors to use in the interaction with the client
+ */
 public class Colors {
 
     /**
