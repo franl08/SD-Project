@@ -188,7 +188,7 @@ public class Model implements Serializable {
                 ans.append("------------------------------------------------------------------\n");
             }
         }
-        return ans.toString();
+        return (!ans.isEmpty()) ? ans.toString() : "No reservations to show";
     }
 
     public void removeFlight(String s) throws FlightDoesntExistException{
@@ -208,10 +208,11 @@ public class Model implements Serializable {
         if(this.reservations.containsKey(reservationID)) {
             String username = this.reservations.get(reservationID).getClientID();
             Set<String> fs = this.reservations.get(reservationID).getFlightsID();
-            for(String id : fs){
+            for(String id : fs)
                 if(!this.flights.get(id).getToGo()) throw new FlightAlreadyDeparted("The flight with ID " + id + " already departed.");
-            }
             if (this.clients.containsKey(username) && currentUser.equals(username)) {
+                for(String id : fs)
+                    this.flights.get(id).removeOneReservation();
                 this.clientReservations.remove(reservationID);
             }
         }
