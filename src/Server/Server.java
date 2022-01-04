@@ -7,6 +7,7 @@ import Utils.TaggedConnection.Frame;
 import Utils.TaggedConnection;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
@@ -14,6 +15,19 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class Server {
+
+    public static void serialize(Model model) {
+        model.l.writeLock().lock();
+        try {
+            System.out.println("Serializing...");
+            model.serialize("model.ser");
+            System.out.println("Serialized.");
+        } catch (IOException e) {
+            System.out.println("Error serializing.");
+        } finally {
+            model.l.writeLock().unlock();
+        }
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -50,248 +64,215 @@ public class Server {
 
                         Frame f = connection.receive();
 
-                        if (f.tag == 0) { // Login attempt
+                        switch (f.tag) {
 
-                            System.out.println("Login attempt.");
-                            String answer = "Error";
+                            case 0 -> { // Login attempt
 
-                            model.l.readLock().lock();
-                            try {
+                                System.out.println("Login attempt.");
+                                String answer = "Error";
+
                                 if (model.checkAuthentication(f.username, new String(f.data)))
                                     answer = "Success";
-                            } finally {
-                                model.l.readLock().unlock();
+
+                                connection.send(f.tag, "", answer.getBytes());
+
                             }
+                            case 1 -> { // Registration attempts
 
-                            connection.send(f.tag, "", answer.getBytes());
+                                System.out.println("Registration attempt.");
+                                String email = f.username;
+                                String password = new String(f.data);
 
-                        } else if (f.tag == 1) { // Registration attempts
+                                String answer;
 
-                            System.out.println("Registration attempt.");
-                            String email = f.username;
-                            String password = new String(f.data);
-
-                            String answer;
-
-                            model.l.writeLock().lock();
-                            try {
-                                model.addClient(email, password);
-                                answer = "Success";
-                                System.out.println("Serializing...");
-                                model.serialize("model.ser");
-                                System.out.println("Serialized.");
-                            } catch (EmailAlreadyExistsException e){
-                                answer = "Error";
-                            } finally {
-                                model.l.writeLock().unlock();
-                            }
-                            connection.send(f.tag, "", answer.getBytes());
-
-
-                        } else if (f.tag == 2) { // Add flight information
-
-                            System.out.println("Adding flight attempt.");
-
-                            String answer = "No admin privileges.";
-
-                            if (f.username.equals("admin")) {
-
-                                String flightData = new String(f.data);
-                                String[] flightDataParsed = flightData.split(" ");
-
-                                model.l.writeLock().lock();
                                 try {
-                                    answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()), true, LocalDate.parse(flightDataParsed[3]));
-                                    System.out.println("Serializing...");
-                                    model.serialize("model.ser");
-                                    System.out.println("Serialized.");
-                                } catch (UnavailableFlightException | IllegalArgumentException e) {
+                                    model.addClient(email, password);
+                                    answer = "Success";
+
+                                } catch (EmailAlreadyExistsException e) {
                                     answer = "Error";
-                                } finally {
-                                    model.l.writeLock().unlock();
                                 }
+
+                                connection.send(f.tag, "", answer.getBytes());
+
+                                if (answer.equals("Success")) serialize(model);
+
                             }
+                            case 2 -> { // Add flight information
 
-                            connection.send(f.tag, f.username, answer.getBytes());
+                                System.out.println("Adding flight attempt.");
 
-                        } else if (f.tag == 3) { // Close a day
+                                String answer = "Error";
 
-                            System.out.println("Closing a day attempt.");
+                                if (f.username.equals("admin")) {
 
-                            String answer;
+                                    String flightData = new String(f.data);
+                                    String[] flightDataParsed = flightData.split(" ");
 
-                            String date = new String(f.data);
+                                    try {
+                                        answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()), true, LocalDate.parse(flightDataParsed[3]));
+                                    } catch (UnavailableFlightException | IllegalArgumentException e) {
+                                        answer = "Error";
+                                    }
 
-                            model.l.writeLock().lock();
-                            try {
-                                model.addClosedDay(LocalDate.parse(date));
-                                answer = "Success";
-                                System.out.println("Serializing...");
-                                model.serialize("model.ser");
-                                System.out.println("Serialized.");
-                            } catch (Exception e) {
-                                answer = "Error";
-                            } finally {
-                                model.l.writeLock().unlock();
+                                }
+
+                                connection.send(f.tag, f.username, answer.getBytes());
+
+                                if (!answer.equals("Error")) serialize(model);
+
                             }
+                            case 3 -> { // Close a day
 
-                            connection.send(f.tag, f.username, answer.getBytes());
+                                System.out.println("Closing a day attempt.");
 
-                        } else if (f.tag == 4) { // Make reservation for a trip by flight ID
+                                String answer;
+                                String date = new String(f.data);
 
-                            System.out.println("Reservation attempt by ids.");
-
-                            String path = new String(f.data);
-                            String[] pathParsed = path.split(" ");
-                            Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
-                            String answer;
-
-                            model.l.writeLock().lock();
-                            try {
-                                answer = model.createReservation(f.username, pathSet);
-                                System.out.println("Serializing...");
-                                model.serialize("model.ser");
-                                System.out.println("Serialized.");
-                            } catch (Exception e) {
-                                answer = "Error";
-                                e.printStackTrace();
-                            } finally {
-                                model.l.writeLock().unlock();
-                            }
-
-                            connection.send(4, f.username, answer.getBytes());
-
-                        } else if (f.tag == 5) { // Make reservation by cities
-
-                            System.out.println("Reservation attempt by cities.");
-
-                            String pathAndDates = new String(f.data);
-                            String[] pathAndDatesParsed = pathAndDates.split(";");
-                            String[] dates = pathAndDatesParsed[1].split(" ");
-                            String[] pathParsed = pathAndDatesParsed[0].split(" ");
-
-                            boolean validReservation = true;
-
-                            List<City> cities = new ArrayList<>();
-                            for (String city : pathParsed) {
                                 try {
-                                    City c = City.valueOf(city.toUpperCase());
-                                    cities.add(c);
-                                } catch (Exception e) {
+                                    model.addClosedDay(LocalDate.parse(date));
+                                    System.out.println(date);
+                                    answer = "Success";
+                                } catch (DateTimeParseException | AlreadyIsAClosedDay e) {
+                                    answer = "Error";
+                                }
+
+                                connection.send(f.tag, f.username, answer.getBytes());
+
+                                if (answer.equals("Success")) serialize(model);
+
+                            }
+                            case 4 -> { // Make reservation for a trip by flight ID
+
+                                System.out.println("Reservation attempt by ids.");
+
+                                String path = new String(f.data);
+                                String[] pathParsed = path.split(" ");
+                                Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
+                                String answer;
+
+                                try {
+                                    answer = model.createReservation(f.username, pathSet);
+                                } catch (FlightDoesntExistException | UnavailableFlightException | FlightAlreadyDeparted e) {
+                                    e.printStackTrace();
+                                    answer = "Error";
+                                }
+
+                                connection.send(4, f.username, answer.getBytes());
+
+                                if (!answer.equals("Error")) serialize(model);
+
+                            }
+                            case 5 -> { // Make reservation by cities
+
+                                System.out.println("Reservation attempt by cities.");
+
+                                String pathAndDates = new String(f.data);
+                                String[] pathAndDatesParsed = pathAndDates.split(";");
+                                String[] dates = pathAndDatesParsed[1].split(" ");
+                                String[] pathParsed = pathAndDatesParsed[0].split(" ");
+
+                                boolean validReservation = true;
+
+                                List<City> cities = new ArrayList<>();
+                                for (String city : pathParsed) {
+                                    try {
+                                        City c = City.valueOf(city.toUpperCase());
+                                        cities.add(c);
+                                    } catch (Exception e) {
+                                        validReservation = false;
+                                    }
+                                }
+
+                                LocalDate beginDate = null, endDate = null;
+                                try {
+                                    beginDate = LocalDate.parse(dates[0]);
+                                    endDate = LocalDate.parse(dates[1]);
+                                } catch (DateTimeParseException e) {
                                     validReservation = false;
                                 }
-                            }
 
-                            LocalDate beginDate = null, endDate = null;
-                            try {
-                                beginDate = LocalDate.parse(dates[0]);
-                                endDate = LocalDate.parse(dates[1]);
-                            } catch(Exception e) {
-                                validReservation = false;
-                            }
+                                String answer = "Error";
 
-                            String answer = "Error";
+                                if (validReservation) {
 
-                            if (validReservation) {
-
-                                model.l.writeLock().lock();
-                                try {
                                     answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
                                     if (answer.equals("")) answer = "Error";
-                                    System.out.println("Serializing...");
-                                    model.serialize("model.ser");
-                                    System.out.println("Serialized.");
-                                } finally {
-                                    model.l.writeLock().unlock();
+
                                 }
+
+                                connection.send(5, f.username, answer.getBytes());
+
+                                if (!answer.equals("Error")) serialize(model);
+
                             }
+                            case 6 -> { // Cancel reservation
 
-                            connection.send(5, f.username, answer.getBytes());
+                                System.out.println("Cancellation attempt.");
 
+                                String username = f.username;
+                                String id = new String(f.data);
+                                String answer;
 
-                        } else if (f.tag == 6) { // Cancel reservation
-
-                            System.out.println("Cancellation attempt.");
-
-                            String username = f.username;
-                            String id = new String(f.data);
-                            String answer;
-
-                            model.l.writeLock().lock();
-                            try {
-                                model.removeReservationByClient(id, username);
-                                answer = "Success";
-                                System.out.println("Serializing...");
-                                model.serialize("model.ser");
-                                System.out.println("Serialized.");
-                            } catch (DoesntExistReservationFromClient e) {
-                                answer = "Error";
-                            } finally {
-                                model.l.writeLock().unlock();
-                            }
-
-                            connection.send(6, f.username, answer.getBytes());
-
-                        } else if (f.tag == 7) { // List all flights
-
-                            System.out.println("Listing all flights attempt.");
-
-                            model.l.readLock().lock();
-                            try {
-                                connection.send(7, f.username, model.getFlightsString().getBytes());
-                            } finally {
-                                model.l.readLock().unlock();
-                            }
-
-
-                        } else if (f.tag == 8) { // List flights in a date
-
-                            System.out.println("Listing all flights in a date attempt.");
-
-                            String date = new String(f.data);
-                            model.l.readLock().lock();
-                            try {
-                                String flightsListing = model.getFlightsStringInDate(LocalDate.parse(date));
-                                connection.send(8, f.username, flightsListing.getBytes());
-                            } catch (Exception e) {
-                                connection.send(8, f.username, "Error".getBytes());
-                            } finally {
-                                model.l.readLock().unlock();
-                            }
-                        } else if (f.tag == 9) {
-
-                            System.out.println("Listing all reservation from user.");
-
-                            // TODO Reading lock
-                            connection.send(9, f.username, model.getReservationsStringFromUser(f.username).getBytes());
-
-                        } else if (f.tag == 10) {
-
-                            System.out.println("Removing a closed day.");
-
-                            String answer;
-                            String dateS = new String(f.data);
-                            try {
-                                LocalDate date = LocalDate.parse(dateS);
-                                model.removeClosedDay(date);
-
-                                answer = "Success";
-
-                                model.l.writeLock().lock();
                                 try {
-                                    System.out.println("Serializing...");
-                                    model.serialize("model.ser");
-                                    System.out.println("Serialized.");
-                                } finally {
-                                    model.l.writeLock().unlock();
+                                    model.removeReservationByClient(id, username);
+                                    answer = "Success";
+                                } catch (DoesntExistReservationFromClient e) {
+                                    answer = "Error";
                                 }
 
-                            } catch (NotAClosedDay | DateTimeParseException e) {
-                                answer = "Error";
+                                connection.send(6, f.username, answer.getBytes());
+
+                                if (answer.equals("Success")) serialize(model);
+
                             }
+                            case 7 -> { // List all flights
 
-                            connection.send(10, f.username, answer.getBytes());
+                                System.out.println("Listing all flights attempt.");
 
+                                connection.send(7, f.username, model.getFlightsString().getBytes());
+
+                            }
+                            case 8 -> { // List flights in a date
+
+                                System.out.println("Listing all flights in a date attempt.");
+                                String answer;
+                                String date = new String(f.data);
+                                try {
+                                    answer = model.getFlightsStringInDate(LocalDate.parse(date));
+                                } catch (DateTimeParseException e) {
+                                    answer = "Error";
+                                }
+
+                                connection.send(8, f.username, answer.getBytes());
+
+                            }
+                            case 9 -> {
+
+                                System.out.println("Listing all reservation from user.");
+
+                                connection.send(9, f.username, model.getReservationsStringFromUser(f.username).getBytes());
+
+                            }
+                            case 10 -> {
+
+                                System.out.println("Removing a closed day.");
+
+                                String answer;
+                                String dateS = new String(f.data);
+                                try {
+                                    LocalDate date = LocalDate.parse(dateS);
+                                    model.removeClosedDay(date);
+                                    answer = "Success";
+
+                                } catch (NotAClosedDay | DateTimeParseException e) {
+                                    answer = "Error";
+                                }
+
+                                connection.send(10, f.username, answer.getBytes());
+
+                                if (answer.equals("Success")) serialize(model);
+                            }
                         }
                     }
 

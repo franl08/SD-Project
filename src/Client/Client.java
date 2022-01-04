@@ -104,7 +104,7 @@ public class Client {
                                         if (!answerFlightAdd.equals("Error"))
                                             System.out.println(Colors.ANSI_PURPLE + "\nFlight successfully added with code " + Colors.ANSI_RESET + answerFlightAdd);
                                         else
-                                            System.out.println(Colors.ANSI_RED + "\nError in inputs inserted." + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_RED + "\nError in inputs inserted or closed day." + Colors.ANSI_RESET);
 
                                     }
                                     case "2" -> { // Close day
