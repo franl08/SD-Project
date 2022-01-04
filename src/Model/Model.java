@@ -256,7 +256,8 @@ public class Model implements Serializable {
         else throw new AlreadyIsAClosedDay("The selected day is already closed.");
     }
 
-    public void removeClosedDay(LocalDate date){
+    public void removeClosedDay(LocalDate date) throws NotAClosedDay{
+        if(!this.closedDays.contains(date)) throw new NotAClosedDay();
         this.closedDays.remove(date);
     }
 
