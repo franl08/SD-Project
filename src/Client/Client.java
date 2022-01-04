@@ -78,7 +78,8 @@ public class Client {
 
                                 System.out.println(Colors.ANSI_GREEN + "\n********** Admin Home Menu **********\n" + Colors.ANSI_RESET);
                                 System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Add flight.");
-                                System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Close day.");
+                                System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Add closed day.");
+                                System.out.println(Colors.ANSI_CYAN + "3. " + Colors.ANSI_RESET + "Remove closed day");
                                 System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
                                 System.out.print(Colors.ANSI_YELLOW + "\nInsert option: " + Colors.ANSI_RESET);
 
@@ -105,7 +106,6 @@ public class Client {
                                         else
                                             System.out.println(Colors.ANSI_RED + "\nError in inputs inserted." + Colors.ANSI_RESET);
 
-                                        break;
                                     }
                                     case "2" -> { // Close day
 
@@ -121,7 +121,9 @@ public class Client {
                                         else
                                             System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
 
-                                        break;
+                                    }
+                                    case "3" -> {
+                                        // TODO
                                     }
                                     case "0" -> homeMenuQuit = true;
                                     default -> System.out.println(Colors.ANSI_RED + "\nInvalid option." + Colors.ANSI_RESET);
@@ -139,6 +141,7 @@ public class Client {
                                 System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Make a reservation.");
                                 System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Get existing flights.");
                                 System.out.println(Colors.ANSI_CYAN + "3. " + Colors.ANSI_RESET + "Remove reservation.");
+                                System.out.println(Colors.ANSI_CYAN + "4. " + Colors.ANSI_RESET + "Get list of reservations made.");
                                 System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
                                 System.out.print(Colors.ANSI_YELLOW + "\nInsert option: " + Colors.ANSI_RESET);
 
@@ -239,7 +242,7 @@ public class Client {
                                                     dm.send(7, username, "0".getBytes());
                                                     System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
                                                     System.out.println(new String(dm.receive(7)));
-                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
+                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed. " + Colors.ANSI_RESET);
                                                     input.readLine();
                                                 }
                                                 case "2" -> {
@@ -254,7 +257,7 @@ public class Client {
                                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights in + " + date + " **********\n" + Colors.ANSI_RESET);
                                                         System.out.println(received);
                                                     }
-                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
+                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed." + Colors.ANSI_RESET);
                                                     input.readLine();
                                                 }
                                                 case "0" -> quitListingMenu = true;
@@ -273,6 +276,15 @@ public class Client {
                                         else
                                             System.out.println(Colors.ANSI_PURPLE + "\nReservation could not be removed." + Colors.ANSI_RESET);
                                     }
+                                    case "4" -> { // Get listing
+
+                                        dm.send(9, username, "0".getBytes());
+
+                                        System.out.println(Colors.ANSI_GREEN + "\n********** Reservations made **********\n" + Colors.ANSI_RESET);
+                                        System.out.println(new String(dm.receive(9)));
+                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed." + Colors.ANSI_RESET);
+                                        input.readLine();
+                                    }
                                     case "0" -> homeMenuQuit = true;
                                     default -> System.out.println(Colors.ANSI_RED + "\nInvalid option." + Colors.ANSI_RESET);
                                 }
@@ -282,7 +294,6 @@ public class Client {
                     } else
                         System.out.println(Colors.ANSI_RED + "\nUnknown credentials" + Colors.ANSI_RESET);
 
-                    break;
                 }
                 case "2" -> {
 
@@ -306,7 +317,6 @@ public class Client {
                     else
                         System.out.println(Colors.ANSI_RED + "\nEmail already taken." + Colors.ANSI_RESET);
 
-                    break;
                 }
                 case "0" -> {
 

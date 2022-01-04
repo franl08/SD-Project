@@ -12,27 +12,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Model implements Serializable {
 
-    private Map<String, String> clients;
-    private Map<String, Flight> flights;
+    private final Map<String, String> clients;
+    private final Map<String, Flight> flights;
     private Map<String, Reservation> reservations;
     private Map<String, Set<String>> clientReservations;
     private Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
 
-    public ReadWriteLock l = new ReentrantReadWriteLock();
+    public ReadWriteLock l;
 
     public Model() {
         this.clients = new HashMap<>();
         this.flights = new HashMap<>();
         this.reservations = new HashMap<>();
         this.closedDays = new HashSet<>();
-    }
-
-    public Model(Map<String, String> clients, Map<String, Flight> flights, Map<String, Reservation> reservations, Map<String, Set<String>> clientReservations, Set<LocalDate> closedDays){
-        this.clients = clients;
-        this.flights = flights;
-        this.reservations = reservations;
-        this.clientReservations = clientReservations;
-        this.closedDays = closedDays;
+        this.l = new ReentrantReadWriteLock();
     }
 
     public Model(Model m) {
@@ -41,6 +34,7 @@ public class Model implements Serializable {
         this.reservations = m.getReservations();
         this.clientReservations = m.getClientReservations();
         this.closedDays = m.getClosedDays();
+        this.l = new ReentrantReadWriteLock();
     }
 
     public Model clone() {
@@ -80,48 +74,14 @@ public class Model implements Serializable {
         return new HashSet<>(this.closedDays);
     }
 
-    public void setClosedDays(Set<LocalDate> dates){
-        this.closedDays = new HashSet<>();
-        this.closedDays.addAll(dates);
-    }
-
     public boolean checkAuthentication(String username, String password){
         if(!this.clients.containsKey(username)) return false;
         return this.clients.get(username).equals(password);
     }
 
-    public boolean lookupUser(String username) {
-        return this.clients.containsKey(username);
-    }
-
     public void addClient(String email, String password) throws EmailAlreadyExistsException {
         if (this.clients.containsKey(email)) throw new EmailAlreadyExistsException();
         this.clients.put(email,password);
-    }
-
-    public void addFlight(Flight f){
-        f.setID(this.generateFlightID());
-        this.flights.put(f.getID(), f.clone());
-    }
-
-    public void addReservation(String email, Reservation r) throws FlightDoesntExistException{
-        Set<String> fIDs = r.getFlightsID();
-        for(String id : fIDs){
-            if(!this.flights.containsKey(id)) throw new FlightDoesntExistException("There isn't any flight with ID " + id);
-        }
-
-        r.setID(this.generateReservationID());
-        this.reservations.put(r.getID(), r.clone());
-
-        Set<String> reserv;
-
-        if (this.clientReservations.containsKey(email))
-            reserv = this.clientReservations.get(email);
-        else
-            reserv = new HashSet<>();
-
-        reserv.add(r.getID());
-        this.clientReservations.put(email, reserv);
     }
 
     public Reservation getReservation(String s) throws ReservationDoesntExistException {
@@ -159,18 +119,27 @@ public class Model implements Serializable {
     }
 
     public Map<String, Reservation> getReservationsFromUser(String s){
-        Map<String, Reservation> ans = new HashMap<>();
+        /*Map<String, Reservation> ans = new HashMap<>();
         if(!this.reservations.isEmpty())
             for(String code : this.reservations.keySet()){
                 Reservation r = this.reservations.get(code);
                 if(r.isFromUser(s)) ans.put(code, r.clone());
+            }*/
+        Map<String,Reservation> ans = new HashMap<>();
+        if (this.clientReservations == null) this.clientReservations = new HashMap<>();
+        if (this.clientReservations.containsKey(s)) {
+            Set<String> reservationsIDS = this.clientReservations.get(s);
+
+            for (String id : reservationsIDS) {
+                ans.put(id, this.reservations.get(id));
             }
+        }
         return ans;
     }
 
     public String getReservationsStringFromUser(String s){
         Map<String, Reservation> reservs = getReservationsFromUser(s);
-        int ac = 0;
+        int ac = 1;
         StringBuilder ans = new StringBuilder();
         if(reservs != null){
             for(String id : reservs.keySet()){
@@ -183,7 +152,7 @@ public class Model implements Serializable {
                             .append("From: ").append(f.getOrigin()).append("\n")
                             .append("To: ").append(f.getDestination()).append("\n")
                             .append("On: ").append(f.getDate()).append("\n")
-                            .append("Flight ID: ").append(f.getID()).append("\n");
+                            .append("Flight ID: ").append(f.getID()).append("\n\n");
                 }
                 ans.append("------------------------------------------------------------------\n");
             }
@@ -254,6 +223,7 @@ public class Model implements Serializable {
         Set<String> reservationsByClient;
 
         if (this.clientReservations == null) this.clientReservations = new HashMap<>();
+        if (this.reservations == null) this.reservations = new HashMap<>();
 
         if (this.clientReservations.containsKey(clientID))
             reservationsByClient = this.clientReservations.get(clientID);
@@ -317,24 +287,28 @@ public class Model implements Serializable {
         return flights;
     }
 
-    // Don't know if this works...
     public String generateFlightID(){
         String lastID = "";
-        for(String s : this.flights.keySet())
-            lastID = s; // recolhe o ID do último voo ig (não sei como funciona a organização interna dos maps, se "ordenar" acho q este método funciona)
-        if(lastID.equals("")) return "F" + 1; // se o map tiver vazio, o ID do Flight poderá ser F1
-        String[] formated = lastID.split("F");
-        return "F" + (Integer.parseInt(formated[1]) + 1); // id do Flight será F seguido pelo número seguinte ao último inserido
+        int mostRecent = 1;
+        for(String s : this.flights.keySet()) {
+            lastID = s;
+            int current = Integer.parseInt(lastID.split("F")[1]);
+            if (current > mostRecent) mostRecent = current;
+        }
+        if(lastID.equals("")) return "F" + 1;
+        return "F" + (mostRecent + 1);
     }
 
-    // funcionamento semelhante ao generateFlightID
     public String generateReservationID(){
         String lastID = "";
-        for(String s : this.reservations.keySet())
+        int mostRecent = 1;
+        for(String s : this.reservations.keySet()) {
             lastID = s;
+            int current = Integer.parseInt(lastID.split("R")[1]);
+            if (current > mostRecent) mostRecent = current;
+        }
         if(lastID.equals("")) return "R" + 1;
-        String[] formated = lastID.split("R");
-        return "R" + (Integer.parseInt(formated[1]) + 1);
+        return "R" + (mostRecent + 1);
     }
 
     public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
@@ -365,7 +339,7 @@ public class Model implements Serializable {
     public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
         List<List<Flight>> compared = new ArrayList<>();
         List<Route> ans = new ArrayList<>();
-        for(int i = 0; i < desiredCities.size() - 2; i++){
+        for(int i = 0; i < desiredCities.size() - 1; i++){
             City o = desiredCities.get(i);
             City d = desiredCities.get(i + 1);
             List<Flight> fs = getFlightsWithOriginDestinationAndDateRange(o, d, begin, end);

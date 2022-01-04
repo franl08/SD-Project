@@ -10,7 +10,6 @@ import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class Server {
@@ -101,7 +100,7 @@ public class Server {
 
                                 model.l.writeLock().lock();
                                 try {
-                                    answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0]), City.valueOf(flightDataParsed[1]), true, LocalDate.parse(flightDataParsed[3]));
+                                    answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()), true, LocalDate.parse(flightDataParsed[3]));
                                     System.out.println("Serializing...");
                                     model.serialize("model.ser");
                                     System.out.println("Serialized.");
@@ -139,7 +138,7 @@ public class Server {
 
                         } else if (f.tag == 4) { // Make reservation for a trip by flight ID
 
-                            System.out.println("Reservation attempt.");
+                            System.out.println("Reservation attempt by ids.");
 
                             String path = new String(f.data);
                             String[] pathParsed = path.split(" ");
@@ -175,7 +174,7 @@ public class Server {
                             List<City> cities = new ArrayList<>();
                             for (String city : pathParsed) {
                                 try {
-                                    City c = City.valueOf(city);
+                                    City c = City.valueOf(city.toUpperCase());
                                     cities.add(c);
                                 } catch (Exception e) {
                                     validReservation = false;
@@ -194,8 +193,16 @@ public class Server {
 
                             if (validReservation) {
 
-                                answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
-                                if (answer.equals("")) answer = "Error";
+                                model.l.writeLock().lock();
+                                try {
+                                    answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
+                                    if (answer.equals("")) answer = "Error";
+                                    System.out.println("Serializing...");
+                                    model.serialize("model.ser");
+                                    System.out.println("Serialized.");
+                                } finally {
+                                    model.l.writeLock().unlock();
+                                }
                             }
 
                             connection.send(5, f.username, answer.getBytes());
@@ -250,6 +257,13 @@ public class Server {
                             } finally {
                                 model.l.readLock().unlock();
                             }
+                        } else if (f.tag == 9) {
+
+                            System.out.println("Listing all reservation from user.");
+
+                            // TODO Reading lock
+                            connection.send(9, f.username, model.getReservationsStringFromUser(f.username).getBytes());
+
                         }
                     }
 

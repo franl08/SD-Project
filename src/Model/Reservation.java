@@ -12,7 +12,7 @@ public class Reservation implements Serializable {
     public Reservation(String ID, String clientID, Set<String> flightID){
         this.ID = ID;
         this.clientID = clientID;
-        this.flightsID = flightID;
+        this.setFlightsID(flightID);
     }
 
     public Reservation(Reservation r){
