@@ -73,6 +73,12 @@ public class Model implements Serializable {
         }
     }
 
+    /*
+
+            Client methods
+
+     */
+
     /**
      * Validates the credentials inserted
      * @param username Email of the user
@@ -104,6 +110,13 @@ public class Model implements Serializable {
             l.writeLock().unlock();
         }
     }
+
+
+    /*
+
+            Flights methods
+
+     */
 
     /**
      * Gets the flights existent in a formatted string
@@ -137,6 +150,129 @@ public class Model implements Serializable {
             l.readLock().unlock();
         }
     }
+
+    /**
+     * Creates a flight
+     * @param nMaxPassengers Maximum number of passengers
+     * @param nReserve Number of reservations already made (normally 0)
+     * @param origin City of origin
+     * @param destination City of destination
+     * @param toGo True if the flight hasn't left yet, false otherwise
+     * @param date Date
+     * @return ID of the flight generated
+     * @throws UnavailableFlightException Can't add flight because the date is closed
+     */
+    public String createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
+        l.writeLock().lock();
+        try {
+            if (closedDays.contains(date)) throw new UnavailableFlightException("The flight is in a closed day.");
+            String fID = this.generateFlightID();
+            Flight f = new Flight(fID, nMaxPassengers, nReserve, origin, destination, toGo, date);
+            this.flights.put(fID, f);
+            return fID;
+        } finally {
+            l.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Generates a flight ID
+     * @return Flight ID
+     */
+    public String generateFlightID(){
+        String lastID = "";
+        int mostRecent = 1;
+
+        l.readLock().lock();
+        try {
+            for (String s : this.flights.keySet()) {
+                lastID = s;
+                int current = Integer.parseInt(lastID.split("F")[1]);
+                if (current > mostRecent) mostRecent = current;
+            }
+            if (lastID.equals("")) return "F" + 1;
+            return "F" + (mostRecent + 1);
+        } finally {
+            l.readLock().unlock();
+        }
+    }
+
+    /**
+     * Removes a flight
+     * @param s ID of the flight
+     * @throws FlightDoesntExistException No flight with that ID is registered
+     */
+    public void removeFlight(String s) throws FlightDoesntExistException{
+        l.writeLock().lock();
+        try {
+            if (this.flights.containsKey(s)) {
+                Map<String, Reservation> reservationsOfFlight = getReservationsFromFlight(s);
+                if (!reservationsOfFlight.isEmpty())
+                    for (String code : reservationsOfFlight.keySet())
+                        try {
+                            removeReservation(code);
+                        } catch (Exception ignored) {
+                        }
+                this.flights.remove(s);
+            } else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
+        } finally {
+            l.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Checks if all the flights are free to be placed in a reservation
+     * @param flightsID List of flights ID's
+     * @throws UnavailableFlightException Flight is full
+     * @throws FlightAlreadyDeparted Flight already left
+     * @throws FlightDoesntExistException Flight doesn't exist
+     */
+    public void checkSetOfFlightsToReservation(Set<String> flightsID) throws UnavailableFlightException, FlightAlreadyDeparted, FlightDoesntExistException{
+        l.readLock().lock();
+        try {
+            for (String fID : flightsID) {
+                Flight f = this.flights.getOrDefault(fID, null);
+                if (f == null) throw new FlightDoesntExistException();
+                else if (!f.hasFreeSpace()) throw new UnavailableFlightException();
+                else if (!f.getToGo()) throw new FlightAlreadyDeparted();
+            }
+        } finally {
+            l.readLock().unlock();
+        }
+    }
+
+    /**
+     * Collects all the flights with a certain origin and destination, between a date range
+     * @param origin Origin
+     * @param destination Destination
+     * @param begin Inferior limit
+     * @param end Superior limit
+     * @return List of flight IDS
+     */
+    public List<Flight> getFlightsWithOriginDestinationAndDateRange(City origin, City destination, LocalDate begin, LocalDate end){
+        l.readLock().lock();
+        try {
+            List<Flight> flights = new ArrayList<>();
+            for (String key : this.flights.keySet()) {
+                Flight f = this.flights.get(key);
+                if (f.getOrigin().equals(origin) && f.getDestination().equals(destination) && Utilities.isInRange(begin, end, f.getDate()))
+                    flights.add(f.clone());
+            }
+            return flights;
+
+        } finally {
+            l.readLock().unlock();
+        }
+
+    }
+
+
+
+    /*
+
+            Reservations methods
+
+     */
 
     /**
      * Gets the reservations that contain a certain flight
@@ -219,28 +355,7 @@ public class Model implements Serializable {
 
     }
 
-    /**
-     * Removes a flight
-     * @param s ID of the flight
-     * @throws FlightDoesntExistException No flight with that ID is registered
-     */
-    public void removeFlight(String s) throws FlightDoesntExistException{
-        l.writeLock().lock();
-        try {
-            if (this.flights.containsKey(s)) {
-                Map<String, Reservation> reservationsOfFlight = getReservationsFromFlight(s);
-                if (!reservationsOfFlight.isEmpty())
-                    for (String code : reservationsOfFlight.keySet())
-                        try {
-                            removeReservation(code);
-                        } catch (Exception ignored) {
-                        }
-                this.flights.remove(s);
-            } else throw new FlightDoesntExistException("There isn't any flight with ID " + s);
-        } finally {
-            l.writeLock().unlock();
-        }
-    }
+
 
     /**
      * Removes a reservation, by request of a client
@@ -299,51 +414,6 @@ public class Model implements Serializable {
     }
 
     /**
-     * Creates a flight
-     * @param nMaxPassengers Maximum number of passengers
-     * @param nReserve Number of reservations already made (normally 0)
-     * @param origin City of origin
-     * @param destination City of destination
-     * @param toGo True if the flight hasn't left yet, false otherwise
-     * @param date Date
-     * @return ID of the flight generated
-     * @throws UnavailableFlightException Can't add flight because the date is closed
-     */
-    public String createFlight(int nMaxPassengers, int nReserve, City origin, City destination, boolean toGo, LocalDate date) throws UnavailableFlightException{
-        l.writeLock().lock();
-        try {
-            if (closedDays.contains(date)) throw new UnavailableFlightException("The flight is in a closed day.");
-            String fID = this.generateFlightID();
-            Flight f = new Flight(fID, nMaxPassengers, nReserve, origin, destination, toGo, date);
-            this.flights.put(fID, f);
-            return fID;
-        } finally {
-            l.writeLock().unlock();
-        }
-    }
-
-    /**
-     * Checks if all the flights are free to be placed in a reservation
-     * @param flightsID List of flights ID's
-     * @throws UnavailableFlightException Flight is full
-     * @throws FlightAlreadyDeparted Flight already left
-     * @throws FlightDoesntExistException Flight doesn't exist
-     */
-    public void checkSetOfFlightsToReservation(Set<String> flightsID) throws UnavailableFlightException, FlightAlreadyDeparted, FlightDoesntExistException{
-        l.readLock().lock();
-        try {
-            for (String fID : flightsID) {
-                Flight f = this.flights.getOrDefault(fID, null);
-                if (f == null) throw new FlightDoesntExistException();
-                else if (!f.hasFreeSpace()) throw new UnavailableFlightException();
-                else if (!f.getToGo()) throw new FlightAlreadyDeparted();
-            }
-        } finally {
-            l.readLock().unlock();
-        }
-    }
-
-    /**
      * Creates a reservation
      * @param clientID ID of the client
      * @param flightsID List of flight IDS
@@ -384,92 +454,6 @@ public class Model implements Serializable {
     }
 
     /**
-     * Adds a closed day, removing the flights on that day
-     * @param date Date
-     * @throws AlreadyIsAClosedDay Already is a closed day
-     */
-    public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDay {
-        l.writeLock().lock();
-        try {
-            if (!this.closedDays.contains(date)) {
-                this.closedDays.add(date);
-                for (String key : flights.keySet()) {
-                    Flight f = flights.get(key);
-                    if (f.getDate().equals(date)) {
-                        try {
-                            removeFlight(key);
-                        } catch (Exception ignored) {}
-                    }
-                }
-            } else throw new AlreadyIsAClosedDay("The selected day is already closed.");
-        } finally {
-            l.writeLock().unlock();
-        }
-    }
-
-    /**
-     * Removes a closed day
-     * @param date Date
-     * @throws NotAClosedDay The date is not closed
-     */
-    public void removeClosedDay(LocalDate date) throws NotAClosedDay{
-        l.writeLock().lock();
-        try {
-            if (!this.closedDays.contains(date)) throw new NotAClosedDay();
-            this.closedDays.remove(date);
-        } finally {
-            l.writeLock().unlock();
-        }
-    }
-
-    /**
-     * Collects all the flights with a certain origin and destination, between a date range
-     * @param origin Origin
-     * @param destination Destination
-     * @param begin Inferior limit
-     * @param end Superior limit
-     * @return List of flight IDS
-     */
-    public List<Flight> getFlightsWithOriginDestinationAndDateRange(City origin, City destination, LocalDate begin, LocalDate end){
-        l.readLock().lock();
-        try {
-            List<Flight> flights = new ArrayList<>();
-            for (String key : this.flights.keySet()) {
-                Flight f = this.flights.get(key);
-                if (f.getOrigin().equals(origin) && f.getDestination().equals(destination) && Utilities.isInRange(begin, end, f.getDate()))
-                    flights.add(f.clone());
-            }
-            return flights;
-
-        } finally {
-            l.readLock().unlock();
-        }
-
-    }
-
-    /**
-     * Generates a flight ID
-     * @return Flight ID
-     */
-    public String generateFlightID(){
-        String lastID = "";
-        int mostRecent = 1;
-
-        l.readLock().lock();
-        try {
-            for (String s : this.flights.keySet()) {
-                lastID = s;
-                int current = Integer.parseInt(lastID.split("F")[1]);
-                if (current > mostRecent) mostRecent = current;
-            }
-            if (lastID.equals("")) return "F" + 1;
-            return "F" + (mostRecent + 1);
-        } finally {
-            l.readLock().unlock();
-        }
-    }
-
-    /**
      * Generates a reservation ID
      * @return Reservation ID
      */
@@ -489,14 +473,6 @@ public class Model implements Serializable {
         } finally {
             l.readLock().unlock();
         }
-    }
-
-    public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
-        List<Flight> ans = new ArrayList<>();
-        for(Flight f : fs){
-            if(this.flights.get(f.getID()).hasFreeSpace() && this.flights.get(f.getID()).getToGo()) ans.add(f);
-        }
-        return ans;
     }
 
     /**
@@ -579,6 +555,60 @@ public class Model implements Serializable {
     public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end){
         return createReservationGivenListRoutes(username, getAvailableRoutesInDataRange(desiredCities, begin, end));
     }
+
+    public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
+        List<Flight> ans = new ArrayList<>();
+        for(Flight f : fs){
+            if(this.flights.get(f.getID()).hasFreeSpace() && this.flights.get(f.getID()).getToGo()) ans.add(f);
+        }
+        return ans;
+    }
+
+    /*
+
+            Closed days methods
+
+     */
+
+    /**
+     * Adds a closed day, removing the flights on that day
+     * @param date Date
+     * @throws AlreadyIsAClosedDay Already is a closed day
+     */
+    public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDay {
+        l.writeLock().lock();
+        try {
+            if (!this.closedDays.contains(date)) {
+                this.closedDays.add(date);
+                for (String key : flights.keySet()) {
+                    Flight f = flights.get(key);
+                    if (f.getDate().equals(date)) {
+                        try {
+                            removeFlight(key);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            } else throw new AlreadyIsAClosedDay("The selected day is already closed.");
+        } finally {
+            l.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Removes a closed day
+     * @param date Date
+     * @throws NotAClosedDay The date is not closed
+     */
+    public void removeClosedDay(LocalDate date) throws NotAClosedDay {
+        l.writeLock().lock();
+        try {
+            if (!this.closedDays.contains(date)) throw new NotAClosedDay();
+            this.closedDays.remove(date);
+        } finally {
+            l.writeLock().unlock();
+        }
+    }
+
 
     /*
 
@@ -749,6 +779,12 @@ public class Model implements Serializable {
         return ans;
     }
     */
+
+    /*
+
+            Serializing and deserializing methods
+
+     */
 
     /**
      * Serializes the model to a filepath
