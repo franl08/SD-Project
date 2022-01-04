@@ -10,9 +10,8 @@ import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class Server {
 
@@ -138,7 +137,7 @@ public class Server {
 
                             connection.send(f.tag, f.username, answer.getBytes());
 
-                        } else if (f.tag == 4) { // Make reservation for a trip
+                        } else if (f.tag == 4) { // Make reservation for a trip by flight ID
 
                             System.out.println("Reservation attempt.");
 
@@ -162,7 +161,47 @@ public class Server {
 
                             connection.send(4, f.username, answer.getBytes());
 
-                        } else if (f.tag == 5) { // Cancel reservation
+                        } else if (f.tag == 5) { // Make reservation by cities
+
+                            System.out.println("Reservation attempt by cities.");
+
+                            String pathAndDates = new String(f.data);
+                            String[] pathAndDatesParsed = pathAndDates.split(";");
+                            String[] dates = pathAndDatesParsed[1].split(" ");
+                            String[] pathParsed = pathAndDatesParsed[0].split(" ");
+
+                            boolean validReservation = true;
+
+                            List<City> cities = new ArrayList<>();
+                            for (String city : pathParsed) {
+                                try {
+                                    City c = City.valueOf(city);
+                                    cities.add(c);
+                                } catch (Exception e) {
+                                    validReservation = false;
+                                }
+                            }
+
+                            LocalDate beginDate = null, endDate = null;
+                            try {
+                                beginDate = LocalDate.parse(dates[0]);
+                                endDate = LocalDate.parse(dates[1]);
+                            } catch(Exception e) {
+                                validReservation = false;
+                            }
+
+                            String answer = "Error";
+
+                            if (validReservation) {
+
+                                answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
+                                if (answer.equals("")) answer = "Error";
+                            }
+
+                            connection.send(5, f.username, answer.getBytes());
+
+
+                        } else if (f.tag == 6) { // Cancel reservation
 
                             System.out.println("Cancellation attempt.");
 
@@ -183,21 +222,21 @@ public class Server {
                                 model.l.writeLock().unlock();
                             }
 
-                            connection.send(5, f.username, answer.getBytes());
+                            connection.send(6, f.username, answer.getBytes());
 
-                        } else if (f.tag == 6) { // List all flights
+                        } else if (f.tag == 7) { // List all flights
 
                             System.out.println("Listing all flights attempt.");
 
                             model.l.readLock().lock();
                             try {
-                                connection.send(6, f.username, model.getFlightsString().getBytes());
+                                connection.send(7, f.username, model.getFlightsString().getBytes());
                             } finally {
                                 model.l.readLock().unlock();
                             }
 
 
-                        } else if (f.tag == 7) { // List flights in a date
+                        } else if (f.tag == 8) { // List flights in a date
 
                             System.out.println("Listing all flights in a date attempt.");
 
@@ -205,9 +244,9 @@ public class Server {
                             model.l.readLock().lock();
                             try {
                                 String flightsListing = model.getFlightsStringInDate(LocalDate.parse(date));
-                                connection.send(7, f.username, flightsListing.getBytes());
+                                connection.send(8, f.username, flightsListing.getBytes());
                             } catch (Exception e) {
-                                connection.send(7, f.username, "Error".getBytes());
+                                connection.send(8, f.username, "Error".getBytes());
                             } finally {
                                 model.l.readLock().unlock();
                             }

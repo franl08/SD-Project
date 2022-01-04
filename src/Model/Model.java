@@ -7,9 +7,7 @@ import Utils.Utilities;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Model implements Serializable {
@@ -302,7 +300,7 @@ public class Model implements Serializable {
             lastID = s; // recolhe o ID do último voo ig (não sei como funciona a organização interna dos maps, se "ordenar" acho q este método funciona)
         if(lastID.equals("")) return "F" + 1; // se o map tiver vazio, o ID do Flight poderá ser F1
         String[] formated = lastID.split("F");
-        return "R" + Integer.parseInt(formated[1]) + 1; // id do Flight será F seguido pelo número seguinte ao último inserido
+        return "F" + (Integer.parseInt(formated[1]) + 1); // id do Flight será F seguido pelo número seguinte ao último inserido
     }
 
     // funcionamento semelhante ao generateFlightID
@@ -312,7 +310,7 @@ public class Model implements Serializable {
             lastID = s;
         if(lastID.equals("")) return "R" + 1;
         String[] formated = lastID.split("R");
-        return "R" + Integer.parseInt(formated[1]) + 1;
+        return "R" + (Integer.parseInt(formated[1]) + 1);
     }
 
     public List<Flight> getFlightsAvailableForReservationFromList(List<Flight> fs){
@@ -323,19 +321,20 @@ public class Model implements Serializable {
         return ans;
     }
 
-    /* Question 5 otimizada (não sei se funfa tho)
+    //Question 5 otimizada (não sei se funfa tho)
     public List<List<Flight>> getPossibleTrip(List<Flight> fs, List<List<Flight>> compared, LocalDate end){
         List<List<Flight>> ans = new ArrayList<>();
         for(Flight f : fs){
             for(List<Flight> possibleT : compared) {
                 int size = possibleT.size();
-                if (Utilities.isInRange(f.getDate(), possibleT.get(size - 1).getDate(), end)){ // se estiver numa data possível, cria uma lista com os voos
+                if (Utilities.isInRange(possibleT.get(size - 1).getDate(), end, f.getDate())){ // se estiver numa data possível, cria uma lista com os voos
                     List<Flight> toAdd = new ArrayList<>(possibleT);
                     toAdd.add(f); // acho q não precisa de ter clone pq eles já vêm clonados do getFlightsWithOriginDestinationAndDateRange
                     ans.add(toAdd);
                 }
             }
         }
+        System.out.println("Results " + ans.size());
         return ans;
     }
 
@@ -347,19 +346,37 @@ public class Model implements Serializable {
             City d = desiredCities.get(i + 1);
             List<Flight> fs = getFlightsWithOriginDestinationAndDateRange(o, d, begin, end);
             if(i != 0)
-                compared = getPossibleTrip(fs, compared);
+                compared = getPossibleTrip(fs, compared, end);
             else
                 compared.add(fs);
         }
         if(compared.size() == 0) return ans; // não existe nenhuma opção viável
         for(List<Flight> fs : compared){
-            Route r = new Route(desiredCities.get(0), desiredCities.get(desiredCities.size() - 1), fs); // passa de lista de listas para lista de rotas
+            Route r = new Route(fs); // passa de lista de listas para lista de rotas
             ans.add(r);
         }
         return ans;
     }
-    */
 
+    public String createReservationGivenListRoutes(String username, List<Route> routes){
+        String reservationID = "";
+        for(Route r : routes){
+            Set<String> fIDs = r.getFlightsIDs();
+
+            for (String id : fIDs) System.out.println(id);
+            try{
+                reservationID = createReservation(username, fIDs);
+                break;
+            } catch (Exception ignored){}
+        }
+        return reservationID;
+    }
+
+    public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end){
+        return createReservationGivenListRoutes(username, getAvailableRoutesInDataRange(desiredCities, begin, end));
+    }
+
+    /*
     // QUESTION 5 feita à padeiro -> pra já, dá para até 2 escalas, mas isto tá muito ineficiente (estupidamente), penso que tbm devia-se evitar os cases, mas não tou a ver como fazer
     public List<Route> getAvailableRoutesInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end){
         List<Route> routes = new ArrayList<>();
@@ -557,14 +574,14 @@ public class Model implements Serializable {
 
         return ans;
     }
-
+    */
     public void serialize(String filepath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filepath);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(this);
-        //oos.flush();
+        oos.flush();
         oos.close();
-        //fos.flush();
+        fos.flush();
         fos.close();
     }
 

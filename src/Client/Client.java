@@ -146,30 +146,82 @@ public class Client {
                                 switch (option) {
                                     case "1" -> {  // Make a reservation
 
-                                        System.out.println(Colors.ANSI_GREEN + "\n********** Reservation **********\n" + Colors.ANSI_RESET);
-                                        StringBuilder flights = new StringBuilder();
-                                        boolean finishedList = false;
-                                        while (!finishedList) {
-                                            System.out.print(Colors.ANSI_YELLOW + "Insert flight ID (or press enter to stop): " + Colors.ANSI_RESET);
-                                            String flightIDInserted = input.readLine();
-                                            if (flightIDInserted.equals(""))
-                                                finishedList = true;
-                                            else
-                                                flights.append(flightIDInserted).append(" ");
+                                        boolean reservationMenuQuit = false;
+                                        while (!reservationMenuQuit) {
+                                            System.out.println(Colors.ANSI_GREEN + "\n********** Reservation **********\n" + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Use flight IDS.");
+                                            System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Use cities.");
+                                            System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
+                                            System.out.print(Colors.ANSI_YELLOW + "\nInsert option: " + Colors.ANSI_RESET);
+
+                                            String optionReservation = input.readLine();
+                                            switch(optionReservation) {
+                                                case "1" -> {
+
+                                                    StringBuilder flights = new StringBuilder();
+                                                    boolean finishedList = false;
+                                                    while (!finishedList) {
+                                                        System.out.print(Colors.ANSI_YELLOW + "Insert flight ID (or press enter to stop): " + Colors.ANSI_RESET);
+                                                        String flightIDInserted = input.readLine();
+                                                        if (flightIDInserted.equals(""))
+                                                            finishedList = true;
+                                                        else
+                                                            flights.append(flightIDInserted).append(" ");
+                                                    }
+                                                    if (!flights.isEmpty()) {
+
+                                                        dm.send(4, username, flights.toString().getBytes());
+
+                                                        String answerReservation = new String(dm.receive(4));
+                                                        if (!answerReservation.equals("Error"))
+                                                            System.out.println(Colors.ANSI_PURPLE + "\nReservation made with success. Code is " + Colors.ANSI_RESET + answerReservation);
+                                                        else
+                                                            System.out.println(Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
+
+                                                    } else
+                                                        System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
+
+                                                }
+                                                case "2" -> {
+
+                                                    StringBuilder cities = new StringBuilder();
+                                                    boolean finishedList = false;
+                                                    while(!finishedList) {
+                                                        System.out.print(Colors.ANSI_YELLOW + "Insert city (or press enter to stop): ");
+                                                        String city = input.readLine();
+                                                        if (city.equals("")) finishedList = true;
+                                                        else cities.append(city).append(" ");
+                                                    }
+
+                                                    System.out.print(Colors.ANSI_YELLOW + "\nInsert beginning date: ");
+                                                    String beginDate = input.readLine();
+                                                    System.out.print(Colors.ANSI_YELLOW + "Insert ending date: ");
+                                                    String endDate = input.readLine();
+
+                                                    cities.append(";").append(beginDate).append(" ").append(endDate);
+
+                                                    if (!cities.isEmpty()) {
+
+                                                        dm.send(5, username, cities.toString().getBytes());
+
+                                                        String answerReservation = new String(dm.receive(5));
+                                                        if (!answerReservation.equals("Error")) {
+                                                            System.out.println(Colors.ANSI_PURPLE + "\nReservation made with success. Code is " + Colors.ANSI_RESET + answerReservation);
+                                                        } else
+                                                            System.out.println(Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
+
+                                                    } else
+                                                        System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled" + Colors.ANSI_RESET);
+
+                                                }
+                                                case "0" -> reservationMenuQuit = true;
+                                                default -> System.out.println(Colors.ANSI_RED + "\nInvalid option." + Colors.ANSI_RESET);
+                                            }
                                         }
-                                        if (!flights.isEmpty()) {
 
-                                            String reservation = String.format("%s", flights);
-                                            dm.send(4, username, reservation.getBytes());
 
-                                            String answerReservation = new String(dm.receive(4));
-                                            if (!answerReservation.equals("Error"))
-                                                System.out.println(Colors.ANSI_PURPLE + "\nReservation made with success. Code is " + Colors.ANSI_RESET + answerReservation);
-                                            else
-                                                System.out.println(Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
 
-                                        } else
-                                            System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
+
                                     }
                                     case "2" -> {
                                         boolean quitListingMenu = false;
@@ -184,17 +236,17 @@ public class Client {
 
                                             switch (optionSelected) {
                                                 case "1" -> {
-                                                    dm.send(6, username, "0".getBytes());
+                                                    dm.send(7, username, "0".getBytes());
                                                     System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
-                                                    System.out.println(new String(dm.receive(6)));
-                                                    System.out.println(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
+                                                    System.out.println(new String(dm.receive(7)));
+                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
                                                     input.readLine();
                                                 }
                                                 case "2" -> {
                                                     System.out.print("Insert desired date (yyyy-mm-dd): ");
                                                     String date = input.readLine();
-                                                    dm.send(7, username, date.getBytes());
-                                                    String received = new String(dm.receive(7));
+                                                    dm.send(8, username, date.getBytes());
+                                                    String received = new String(dm.receive(8));
                                                     if (received.equals("Error"))
                                                         System.out.println(Colors.ANSI_RED + "\nData format invalid." + Colors.ANSI_RESET);
 
@@ -202,7 +254,7 @@ public class Client {
                                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights in + " + date + " **********\n" + Colors.ANSI_RESET);
                                                         System.out.println(received);
                                                     }
-                                                    System.out.println(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
+                                                    System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed.");
                                                     input.readLine();
                                                 }
                                                 case "0" -> quitListingMenu = true;
@@ -214,8 +266,8 @@ public class Client {
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Removing Reservations **********\n" + Colors.ANSI_RESET);
                                         System.out.print(Colors.ANSI_YELLOW + "Insert reservation code: " + Colors.ANSI_RESET);
                                         String reservationCode = input.readLine();
-                                        dm.send(5, username, reservationCode.getBytes());
-                                        String answer = new String(dm.receive(5));
+                                        dm.send(6, username, reservationCode.getBytes());
+                                        String answer = new String(dm.receive(6));
                                         if (answer.equals("Success"))
                                             System.out.println(Colors.ANSI_PURPLE + "\nReservation removed with success." + Colors.ANSI_RESET);
                                         else
