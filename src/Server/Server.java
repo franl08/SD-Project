@@ -10,6 +10,7 @@ import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class Server {
@@ -263,6 +264,33 @@ public class Server {
 
                             // TODO Reading lock
                             connection.send(9, f.username, model.getReservationsStringFromUser(f.username).getBytes());
+
+                        } else if (f.tag == 10) {
+
+                            System.out.println("Removing a closed day.");
+
+                            String answer;
+                            String dateS = new String(f.data);
+                            try {
+                                LocalDate date = LocalDate.parse(dateS);
+                                model.removeClosedDay(date);
+
+                                answer = "Success";
+
+                                model.l.writeLock().lock();
+                                try {
+                                    System.out.println("Serializing...");
+                                    model.serialize("model.ser");
+                                    System.out.println("Serialized.");
+                                } finally {
+                                    model.l.writeLock().unlock();
+                                }
+
+                            } catch (NotAClosedDay | DateTimeParseException e) {
+                                answer = "Error";
+                            }
+
+                            connection.send(10, f.username, answer.getBytes());
 
                         }
                     }

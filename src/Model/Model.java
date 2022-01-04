@@ -194,6 +194,7 @@ public class Model implements Serializable {
             if (this.clients.containsKey(username)) {
                 this.clientReservations.remove(reservationID);
             }
+            this.reservations.remove(reservationID);
         }
         else throw new ReservationDoesntExistException("There isn't any reservation with ID " + reservationID);
     }
