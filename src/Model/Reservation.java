@@ -1,6 +1,7 @@
 package Model;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,15 +23,22 @@ public class Reservation implements Serializable {
     private Set<String> flightsID;
 
     /**
+     * Date of the flights
+     */
+    private LocalDate date;
+
+    /**
      * Parametrized constructor
      * @param ID Reservation ID
      * @param clientID Client ID
      * @param flightID Set of flights IDs
+     * @param date Date of the flights
      */
-    public Reservation(String ID, String clientID, Set<String> flightID){
+    public Reservation(String ID, String clientID, Set<String> flightID, LocalDate date){
         this.ID = ID;
         this.clientID = clientID;
         this.setFlightsID(flightID);
+        this.date = date;
     }
 
     /**
@@ -41,6 +49,7 @@ public class Reservation implements Serializable {
         this.ID = r.getID();
         this.clientID = r.getClientID();
         this.flightsID = r.getFlightsID();
+        this.date = r.getDate();
     }
 
     /**
@@ -82,5 +91,13 @@ public class Reservation implements Serializable {
     public void setFlightsID(Set<String> flightsID){
         this.flightsID = new HashSet<>();
         this.flightsID.addAll(flightsID);
+    }
+
+    public LocalDate getDate(){
+        return this.date;
+    }
+
+    public void setDate(LocalDate date){
+        this.date = date;
     }
 }
