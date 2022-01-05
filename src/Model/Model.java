@@ -2,7 +2,6 @@ package Model;
 
 import Exceptions.*;
 import Utils.City;
-import Utils.Utilities;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -189,22 +188,21 @@ public class Model implements Serializable {
      * @throws UnavailableFlightException Flight is full
      * @throws FlightDoesntExistException Flight doesn't exist
      */
-    public void checkSetOfFlightsToReservation(Set<String> flightsID, LocalDate date) throws UnavailableFlightException, FlightDoesntExistException{
-        l.readLock().lock();
-        try {
-            for (String fID : flightsID) {
-                Flight f = this.flights.getOrDefault(fID, null);
-                if (f == null) throw new FlightDoesntExistException();
-                int totalReservationsOfFlight = 0;
-                Set<String> resIdsOnDate = this.reservationsInDate.get(date);
-                for(String rID : resIdsOnDate){
+    public void checkSetOfFlightsToReservation(Set<String> flightsID, LocalDate date) throws UnavailableFlightException, FlightDoesntExistException, OnlyClosedDaysException{
+
+        if(this.closedDays.contains(date)) throw new OnlyClosedDaysException();
+        for (String fID : flightsID) {
+            Flight f = this.flights.getOrDefault(fID, null);
+            if (f == null) throw new FlightDoesntExistException();
+            int totalReservationsOfFlight = 0;
+            Set<String> resIdsOnDate = this.reservationsInDate.get(date);
+            if (resIdsOnDate != null) {
+                for (String rID : resIdsOnDate) {
                     Reservation r = this.reservations.get(rID);
-                    if(r.getFlightsID().contains(fID)) totalReservationsOfFlight++;
+                    if (r.getFlightsID().contains(fID)) totalReservationsOfFlight++;
                 }
-                if(totalReservationsOfFlight > f.getnMaxPassengers()) throw new UnavailableFlightException();
             }
-        } finally {
-            l.readLock().unlock();
+            if(totalReservationsOfFlight > f.getnMaxPassengers()) throw new UnavailableFlightException();
         }
     }
 
@@ -221,21 +219,16 @@ public class Model implements Serializable {
      */
     public Map<String, Reservation> getReservationsFromUser(String s){
 
-        l.readLock().lock();
-        try {
-            Map<String, Reservation> ans = new HashMap<>();
-            if (this.clientReservations == null) this.clientReservations = new HashMap<>();
-            if (this.clientReservations.containsKey(s)) {
-                Set<String> reservationsIDS = this.clientReservations.get(s);
+         Map<String, Reservation> ans = new HashMap<>();
+         if (this.clientReservations == null) this.clientReservations = new HashMap<>();
+         if (this.clientReservations.containsKey(s)) {
+             Set<String> reservationsIDS = this.clientReservations.get(s);
 
-                for (String id : reservationsIDS) {
-                    ans.put(id, this.reservations.get(id));
-                }
-            }
-            return ans;
-        } finally {
-            l.readLock().unlock();
-        }
+             for (String id : reservationsIDS) {
+                 ans.put(id, this.reservations.get(id));
+             }
+         }
+         return ans;
 
     }
 
@@ -311,8 +304,7 @@ public class Model implements Serializable {
      * @throws ReservationDoesntExistException No reservation is registered under that ID
      */
     public void removeReservation(String reservationID) throws ReservationDoesntExistException {
-        l.writeLock().lock();
-        try {
+
             if (this.reservations.containsKey(reservationID)) {
                 Reservation r = this.reservations.get(reservationID);
                 String username = r.getClientID();
@@ -331,9 +323,7 @@ public class Model implements Serializable {
 
                 this.reservations.remove(reservationID);
             } else throw new ReservationDoesntExistException("There isn't any reservation with ID " + reservationID);
-        } finally {
-            l.writeLock().unlock();
-        }
+
     }
 
     /**
@@ -345,7 +335,7 @@ public class Model implements Serializable {
      * @throws FlightDoesntExistException A flight does not exist
      * @throws UnavailableFlightException A flight is unavailable
      */
-    public String createReservation(String clientID, Set<String> flightsID, LocalDate date) throws FlightDoesntExistException, UnavailableFlightException {
+    public String createReservation(String clientID, Set<String> flightsID, LocalDate date) throws FlightDoesntExistException, UnavailableFlightException, OnlyClosedDaysException {
         l.writeLock().lock();
         try {
             checkSetOfFlightsToReservation(flightsID, date);
@@ -391,20 +381,22 @@ public class Model implements Serializable {
         String lastID = "";
         int mostRecent = 1;
 
-        l.readLock().lock();
-        try {
-            for (String s : this.reservations.keySet()) {
-                lastID = s;
-                int current = Integer.parseInt(lastID.split("R")[1]);
-                if (current > mostRecent) mostRecent = current;
-            }
-            if (lastID.equals("")) return "R" + 1;
-            return "R" + (mostRecent + 1);
-        } finally {
-            l.readLock().unlock();
+
+        for (String s : this.reservations.keySet()) {
+            lastID = s;
+            int current = Integer.parseInt(lastID.split("R")[1]);
+            if (current > mostRecent) mostRecent = current;
         }
+        if (lastID.equals("")) return "R" + 1;
+        return "R" + (mostRecent + 1);
     }
 
+    /**
+     * Gets flight with a certain origin and destination
+     * @param o Origin
+     * @param d Destination
+     * @return List of flights
+     */
     public List<Flight> getFlightsWithOriginDestination(City o, City d){
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
@@ -415,33 +407,24 @@ public class Model implements Serializable {
     }
 
     /**
-     * Gets a list of possible trips
-     * @param fs Flights ID
-     * @param compared Flights to check if it's possible to make a route
-     * @param end Future limit date
-     * @return Updated compare
+     * Gets a available flights on a date
+     * @param fs Flights
+     * @param date Date
+     * @return Flight
      */
-    public List<List<Flight>> getPossibleTrip(List<Flight> fs, List<List<Flight>> compared, LocalDate end){
-        List<List<Flight>> ans = new ArrayList<>();
-        for (Flight f : fs) {
-            for (List<Flight> possibleT : compared) {
-                int size = possibleT.size();
-                List<Flight> toAdd = new ArrayList<>(possibleT);
-                toAdd.add(f);
-                ans.add(toAdd);
-            }
-        }
-        return ans;
-    }
-
     public Flight getAvailableFlightOnDate(List<Flight> fs, LocalDate date){
         Set<String> resIdsOnDate = this.reservationsInDate.get(date);
         Flight ans = null;
         for(Flight f : fs){
             int nRes = 0;
-            for(String rID : resIdsOnDate)
-                if(this.reservations.get(rID).getFlightsID().contains(f.getID())) nRes++;
-            if(nRes < f.getnMaxPassengers()) ans = f;
+            if (resIdsOnDate != null) {
+                for (String rID : resIdsOnDate)
+                    if (this.reservations.get(rID).getFlightsID().contains(f.getID())) nRes++;
+            }
+            if (nRes < f.getnMaxPassengers()) {
+                ans = f;
+                break;
+            }
         }
         return ans;
     }
@@ -454,25 +437,30 @@ public class Model implements Serializable {
      * @return Routes
      */
     public Map.Entry<LocalDate, Set<String>> getAvailableListOfFlightsInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException{
-        Set<String> ans = new HashSet<>();
-        LocalDate curDate = begin;
-        boolean isOpenDay = false;
-        while(!isOpenDay && (curDate.isBefore(end) || curDate.isEqual(end))) {
-            if (this.closedDays.contains(curDate))
-                curDate = curDate.plusDays(1);
-            else isOpenDay = true;
-        }
-        if(!isOpenDay) throw new OnlyClosedDaysException();
-        else
-            for(int i = 0; i < desiredCities.size() - 1; i++){
-                City o = desiredCities.get(i);
-                City d = desiredCities.get(i + 1);
-                List<Flight> fs = getFlightsWithOriginDestination(o, d);
-                Flight f = getAvailableFlightOnDate(fs, curDate);
-                if(f == null) throw new UnavailableFlightException();
-                else ans.add(f.getID());
+        l.readLock().lock();
+        try {
+            Set<String> ans = new HashSet<>();
+            LocalDate curDate = begin;
+            boolean isOpenDay = false;
+            while (!isOpenDay && (curDate.isBefore(end) || curDate.isEqual(end))) {
+                if (this.closedDays.contains(curDate))
+                    curDate = curDate.plusDays(1);
+                else isOpenDay = true;
             }
-        return new AbstractMap.SimpleEntry<>(curDate, ans);
+            if (!isOpenDay) throw new OnlyClosedDaysException();
+            else
+                for (int i = 0; i < desiredCities.size() - 1; i++) {
+                    City o = desiredCities.get(i);
+                    City d = desiredCities.get(i + 1);
+                    List<Flight> fs = getFlightsWithOriginDestination(o, d);
+                    Flight f = getAvailableFlightOnDate(fs, curDate);
+                    if (f == null) throw new UnavailableFlightException();
+                    else ans.add(f.getID());
+                }
+            return new AbstractMap.SimpleEntry<>(curDate, ans);
+        } finally {
+            l.readLock().unlock();
+        }
     }
 
     /**
@@ -504,11 +492,12 @@ public class Model implements Serializable {
         try {
             if (!this.closedDays.contains(date)) {
                 this.closedDays.add(date);
-                Set<String> rIDsOnDate = this.reservationsInDate.get(date);
+                Set<String> rIDsOnDate = new HashSet<>(this.reservationsInDate.get(date));
                 for(String id : rIDsOnDate)
                     try{
                         removeReservation(id);
                     } catch (Exception ignored){}
+                this.reservationsInDate.remove(date);
             } else throw new AlreadyIsAClosedDay("The selected day is already closed.");
         } finally {
             l.writeLock().unlock();

@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -128,8 +127,8 @@ public class Server {
                                     String[] flightDataParsed = flightData.split(" ");
 
                                     try {
-                                        answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), 0, City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()), true, LocalDate.parse(flightDataParsed[3]));
-                                    } catch (UnavailableFlightException | IllegalArgumentException e) {
+                                        answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()));
+                                    } catch (IllegalArgumentException e) {
                                         answer = "Error";
                                     }
 
@@ -151,8 +150,9 @@ public class Server {
                                     model.addClosedDay(LocalDate.parse(date));
                                     System.out.println(date);
                                     answer = "Success";
-                                } catch (DateTimeParseException | AlreadyIsAClosedDay e) {
+                                } catch (Exception e) {
                                     answer = "Error";
+                                    e.printStackTrace();
                                 }
 
                                 connection.send(f.tag, f.username, answer.getBytes());
@@ -160,70 +160,90 @@ public class Server {
                                 if (answer.equals("Success")) serialize(model);
 
                             }
-                            case 4 -> { // Make reservation for a trip by flight ID
+                            case 4 ->  // Make reservation for a trip by flight ID
 
-                                System.out.println("Reservation attempt by ids.");
+                                new Thread(()-> {
 
-                                String path = new String(f.data);
-                                String[] pathParsed = path.split(" ");
-                                Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
-                                String answer;
+                                    System.out.println("Reservation attempt by ids.");
 
-                                try {
-                                    answer = model.createReservation(f.username, pathSet);
-                                } catch (FlightDoesntExistException | UnavailableFlightException | FlightAlreadyDeparted e) {
-                                    e.printStackTrace();
-                                    answer = "Error";
-                                }
+                                    String path = new String(f.data);
+                                    String[] pathAndDateParsed = path.split(";");
+                                    String[] pathParsed = pathAndDateParsed[0].split(" ");
+                                    String dateS = pathAndDateParsed[1];
+                                    Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
+                                    String answer;
 
-                                connection.send(4, f.username, answer.getBytes());
 
-                                if (!answer.equals("Error")) serialize(model);
-
-                            }
-                            case 5 -> { // Make reservation by cities
-
-                                System.out.println("Reservation attempt by cities.");
-
-                                String pathAndDates = new String(f.data);
-                                String[] pathAndDatesParsed = pathAndDates.split(";");
-                                String[] dates = pathAndDatesParsed[1].split(" ");
-                                String[] pathParsed = pathAndDatesParsed[0].split(" ");
-
-                                boolean validReservation = true;
-
-                                List<City> cities = new ArrayList<>();
-                                for (String city : pathParsed) {
                                     try {
-                                        City c = City.valueOf(city.toUpperCase());
-                                        cities.add(c);
-                                    } catch (Exception e) {
+                                        LocalDate date = LocalDate.parse(dateS);
+                                        answer = model.createReservation(f.username, pathSet, date);
+                                    } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException e) {
+                                        e.printStackTrace();
+                                        answer = "Error";
+                                    }
+
+                                    try {
+                                        connection.send(4, f.username, answer.getBytes());
+                                    } catch(IOException e) {
+                                        System.out.println("Error sending.");
+                                    }
+
+                                    if (!answer.equals("Error")) serialize(model);
+
+                                }).start();
+
+                            case 5 -> // Make reservation by cities
+                                new Thread(()-> {
+                                    System.out.println("Reservation attempt by cities.");
+
+                                    String pathAndDates = new String(f.data);
+                                    String[] pathAndDatesParsed = pathAndDates.split(";");
+                                    String[] dates = pathAndDatesParsed[1].split(" ");
+                                    String[] pathParsed = pathAndDatesParsed[0].split(" ");
+
+                                    boolean validReservation = true;
+
+                                    List<City> cities = new ArrayList<>();
+                                    for (String city : pathParsed) {
+                                        try {
+                                            City c = City.valueOf(city.toUpperCase());
+                                            cities.add(c);
+                                        } catch (Exception e) {
+                                            validReservation = false;
+                                        }
+                                    }
+
+                                    LocalDate beginDate = null, endDate = null;
+                                    try {
+                                        beginDate = LocalDate.parse(dates[0]);
+                                        endDate = LocalDate.parse(dates[1]);
+                                    } catch (DateTimeParseException e) {
                                         validReservation = false;
                                     }
-                                }
 
-                                LocalDate beginDate = null, endDate = null;
-                                try {
-                                    beginDate = LocalDate.parse(dates[0]);
-                                    endDate = LocalDate.parse(dates[1]);
-                                } catch (DateTimeParseException e) {
-                                    validReservation = false;
-                                }
+                                    String answer = "Error";
 
-                                String answer = "Error";
+                                    if (validReservation) {
 
-                                if (validReservation) {
+                                        try {
+                                            answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
+                                            if (answer.equals("")) answer = "Error";
+                                        } catch (OnlyClosedDaysException | UnavailableFlightException | FlightAlreadyDeparted | FlightDoesntExistException e) {
+                                            answer = "Error";
+                                        }
 
-                                    answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
-                                    if (answer.equals("")) answer = "Error";
+                                    }
 
-                                }
+                                    try {
+                                        connection.send(5, f.username, answer.getBytes());
+                                    } catch (IOException e) {
+                                        System.out.println("Error sending");
+                                    }
 
-                                connection.send(5, f.username, answer.getBytes());
+                                    if (!answer.equals("Error")) serialize(model);
 
-                                if (!answer.equals("Error")) serialize(model);
+                                }).start();
 
-                            }
                             case 6 -> { // Cancel reservation
 
                                 System.out.println("Cancellation attempt.");
@@ -249,20 +269,6 @@ public class Server {
                                 System.out.println("Listing all flights attempt.");
 
                                 connection.send(7, f.username, model.getFlightsString().getBytes());
-
-                            }
-                            case 8 -> { // List flights in a date
-
-                                System.out.println("Listing all flights in a date attempt.");
-                                String answer;
-                                String date = new String(f.data);
-                                try {
-                                    answer = model.getFlightsStringInDate(LocalDate.parse(date));
-                                } catch (DateTimeParseException e) {
-                                    answer = "Error";
-                                }
-
-                                connection.send(8, f.username, answer.getBytes());
 
                             }
                             case 9 -> {
@@ -296,24 +302,6 @@ public class Server {
                                 System.out.println("Listing the closed days attempt.");
 
                                 connection.send(11, f.username, model.getClosedDays().getBytes());
-
-                            }
-                            case 12 -> {
-
-                                System.out.println("Marking that flight has left attempt.");
-
-                                String answer;
-
-                                try {
-                                    String id = new String(f.data);
-                                    model.setFlightAsTakenOff(id);
-                                    answer = "Success";
-                                } catch (FlightDoesntExistException | FlightAlreadyDeparted e) {
-                                    answer = "Error";
-                                }
-
-                                connection.send(12, f.username, answer.getBytes());
-                                if(answer.equals("Success")) serialize(model);
 
                             }
                             default -> {}
