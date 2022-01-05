@@ -44,17 +44,16 @@ public class Client {
                     Initial Menu: Login + Registration
 
              */
-            System.out.println(Colors.ANSI_GREEN + "\n" +
-                    "\n" +
-                    "  ____                         _ _                  _    _      _ _            \n" +
-                    " |  _ \\ ___  ___  ___  ___  __| (_)_ __   __ _     / \\  (_)_ __| (_)_ __   ___ \n" +
-                    " | |_) / _ \\/ __|/ _ \\/ _ \\/ _` | | '_ \\ / _` |   / _ \\ | | '__| | | '_ \\ / _ \\\n" +
-                    " |  _ <  __/\\__ \\  __/  __/ (_| | | | | | (_| |  / ___ \\| | |  | | | | | |  __/\n" +
-                    " |_| \\_\\___||___/\\___|\\___|\\__,_|_|_| |_|\\__, | /_/   \\_\\_|_|  |_|_|_| |_|\\___|\n" +
-                    "                                         |___/                                 \n" +
-                    "\n\n" + Colors.ANSI_RESET);
+            System.out.println(Colors.ANSI_GREEN +
+                    "______  ______        ______       _______________            \n" +
+                    "___  / / /__(_)______ ___  /_      ___  ____/__  /____  __    \n" +
+                    "__  /_/ /__  /__  __ `/_  __ \\     __  /_   __  /__  / / /    \n" +
+                    "_  __  / _  / _  /_/ /_  / / /     _  __/   _  / _  /_/ /     \n" +
+                    "/_/ /_/  /_/  _\\__, / /_/ /_/      /_/      /_/  _\\__, /      \n" +
+                    "              /____/                             /____/       \n" +
+                    "\n" + Colors.ANSI_RESET);
 
-            System.out.println(Colors.ANSI_PURPLE + "******************* Welcome *******************\n" + Colors.ANSI_RESET);
+            System.out.println(Colors.ANSI_PURPLE + "**************************** Welcome ****************************\n" + Colors.ANSI_RESET);
             System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Login.");
             System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Registration.");
             System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
