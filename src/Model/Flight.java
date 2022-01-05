@@ -146,22 +146,16 @@ public class Flight implements Serializable {
 
     /**
      * Removes one reservation
-     * @return True if it was possible, false otherwise
      */
-    public boolean removeOneReservation(){
-        if(this.nReservations <= 0) return false;
+    public void removeOneReservation(){
         this.nReservations--;
-        return true;
     }
 
     /**
      * Adds one reservation
-     * @return True if it was possible, false otherwise
      */
-    public boolean addOneReservation(){
-        if(this.nReservations >= nMaxPassengers) return false;
+    public void addOneReservation(){
         this.nReservations++;
-        return true;
     }
 
     /**
@@ -195,8 +189,10 @@ public class Flight implements Serializable {
                 .append("Number Of Reservations: ").append(this.nReservations).append("\n")
                 .append("Origin: ").append(this.origin.toString())
                 .append(" -> Destination: ").append(this.destination.toString()).append("\n")
-                .append("Date: ").append(this.date).append("\n")
-                .append("------------------------------------------------------------------\n");
+                .append("Date: ").append(this.date).append("\n");
+        if(this.toGo) sb.append("Flight Status: To Depart\n");
+        else sb.append("Flight Status: Already Departed\n");
+        sb.append("------------------------------------------------------------------\n");
         return sb.toString();
     }
 

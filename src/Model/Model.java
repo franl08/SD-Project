@@ -63,10 +63,11 @@ public class Model implements Serializable {
             StringBuilder string = new StringBuilder();
 
             for (LocalDate date : this.closedDays) {
-                string.append(" * ").append(date).append("\n");
+                string.append("-> Date: ").append(date).append("\n");
             }
 
-            string.append("-------------------").append("\n\n");
+            if(this.closedDays.size() != 0)
+                string.append("---------------------------").append("\n\n");
             return (string.isEmpty() ? "No closed days to show\n\n" :string.toString());
         } finally {
             l.readLock().unlock();
@@ -224,11 +225,16 @@ public class Model implements Serializable {
      * Sets flight as taken off
      * @param flightID Flight ID
      * @throws FlightDoesntExistException The flight ID has no flight associated
+     * @throws FlightAlreadyDeparted The flight with the ID passed by argument was already setted as departed
      */
-    public void setFlightAsTakenOff(String flightID) throws FlightDoesntExistException {
+    public void setFlightAsTakenOff(String flightID) throws FlightDoesntExistException, FlightAlreadyDeparted{
+        if (this.flights.containsKey(flightID)){
 
-        if (this.flights.containsKey(flightID))
+            if(!this.flights.get(flightID).getToGo())
+                throw new FlightAlreadyDeparted();
+
             this.flights.get(flightID).setToGo(false);
+        }
         else
             throw new FlightDoesntExistException();
     }
@@ -356,7 +362,9 @@ public class Model implements Serializable {
                                 .append("From: ").append(f.getOrigin()).append("\n")
                                 .append("To: ").append(f.getDestination()).append("\n")
                                 .append("On: ").append(f.getDate()).append("\n")
-                                .append("Flight ID: ").append(f.getID()).append("\n\n");
+                                .append("Flight ID: ").append(f.getID()).append("\n");
+                        if(f.getToGo()) ans.append("Flight Status: To Depart\n\n");
+                        else ans.append("Flight Status: Already Departed\n\n");
                     }
                     ans.append("------------------------------------------------------------------\n");
                 }
@@ -597,6 +605,7 @@ public class Model implements Serializable {
                     Flight f = flights.get(key);
                     if (f.getDate().equals(date)) {
                         try {
+                            l.writeLock().unlock();
                             removeFlight(key);
                         } catch (Exception ignored) {}
                     }

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -304,13 +305,15 @@ public class Server {
                                 String answer;
 
                                 try {
-                                    model.setFlightAsTakenOff(Arrays.toString(f.data));
+                                    String id = new String(f.data);
+                                    model.setFlightAsTakenOff(id);
                                     answer = "Success";
-                                } catch (FlightDoesntExistException e) {
+                                } catch (FlightDoesntExistException | FlightAlreadyDeparted e) {
                                     answer = "Error";
                                 }
 
                                 connection.send(12, f.username, answer.getBytes());
+                                if(answer.equals("Success")) serialize(model);
 
                             }
                             default -> {}

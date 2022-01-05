@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * Class that represents a client. Needs an instance of Server running to work
@@ -154,7 +156,8 @@ public class Client {
 
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Close day listing **********\n" + Colors.ANSI_RESET);
                                         System.out.println(listingClosedDays);
-
+                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed. " + Colors.ANSI_RESET);
+                                        input.readLine();
 
                                     }
                                     case "5" -> {
@@ -169,7 +172,7 @@ public class Client {
                                         if (answer.equals("Success"))
                                             System.out.println(Colors.ANSI_PURPLE + "\nFlight updated." + Colors.ANSI_RESET);
                                         else
-                                            System.out.println(Colors.ANSI_RED + "\nNo flight ID matches description." + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_RED + "\nNo flight ID matches description or the flight was already setted as departed." + Colors.ANSI_RESET);
 
                                     }
                                     case "0" -> homeMenuQuit = true;
@@ -243,14 +246,13 @@ public class Client {
                                                         else cities.append(city).append(" ");
                                                     }
 
-                                                    System.out.print(Colors.ANSI_YELLOW + "\nInsert beginning date: ");
+                                                    System.out.print(Colors.ANSI_YELLOW + "\nInsert beginning date (yyyy-mm-dd): ");
                                                     String beginDate = input.readLine();
-                                                    System.out.print(Colors.ANSI_YELLOW + "Insert ending date: ");
+                                                    System.out.print(Colors.ANSI_YELLOW + "Insert ending date (yyyy-mm-dd): ");
                                                     String endDate = input.readLine();
 
-                                                    cities.append(";").append(beginDate).append(" ").append(endDate);
-
-                                                    if (!cities.isEmpty()) {
+                                                    if (!cities.isEmpty() && !beginDate.equals("") && !endDate.equals("")) {
+                                                        cities.append(";").append(beginDate).append(" ").append(endDate);
 
                                                         dm.send(5, username, cities.toString().getBytes());
 
