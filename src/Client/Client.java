@@ -88,7 +88,9 @@ public class Client {
                                 System.out.println(Colors.ANSI_GREEN + "\n********** Admin Home Menu **********\n" + Colors.ANSI_RESET);
                                 System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Add flight.");
                                 System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Add closed day.");
-                                System.out.println(Colors.ANSI_CYAN + "3. " + Colors.ANSI_RESET + "Remove closed day");
+                                System.out.println(Colors.ANSI_CYAN + "3. " + Colors.ANSI_RESET + "Remove closed day.");
+                                System.out.println(Colors.ANSI_CYAN + "4. " + Colors.ANSI_RESET + "Listing of the closed days.");
+                                System.out.println(Colors.ANSI_CYAN + "5. " + Colors.ANSI_RESET + "Mark that flight has taken of.");
                                 System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
                                 System.out.print(Colors.ANSI_YELLOW + "\nInsert option: " + Colors.ANSI_RESET);
 
@@ -132,7 +134,43 @@ public class Client {
 
                                     }
                                     case "3" -> {
-                                        // TODO
+
+                                        System.out.println(Colors.ANSI_GREEN + "\n********** Removing closed day **********\n" + Colors.ANSI_RESET);
+                                        System.out.print(Colors.ANSI_YELLOW + "Insert date (yyyy-mm-dd): " + Colors.ANSI_RESET);
+                                        String date = input.readLine();
+
+                                        dm.send(10, username, date.getBytes());
+
+                                        String answer = new String(dm.receive(10));
+                                        if (answer.equals("Success"))
+                                            System.out.println(Colors.ANSI_PURPLE + "\nClosed day removed." + Colors.ANSI_RESET);
+                                        else
+                                            System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
+                                    }
+                                    case "4" -> {
+                                        dm.send(11, username, "0".getBytes());
+
+                                        String listingClosedDays = new String(dm.receive(11));
+
+                                        System.out.println(Colors.ANSI_GREEN + "\n********** Close day listing **********\n" + Colors.ANSI_RESET);
+                                        System.out.println(listingClosedDays);
+
+
+                                    }
+                                    case "5" -> {
+
+                                        System.out.println(Colors.ANSI_GREEN + "\n********** Flight updates **********\n" + Colors.ANSI_RESET);
+                                        System.out.print(Colors.ANSI_YELLOW + "Insert flight ID: " + Colors.ANSI_RESET);
+                                        String flightID = input.readLine();
+
+                                        dm.send(12, username, flightID.getBytes());
+
+                                        String answer = new String(dm.receive(12));
+                                        if (answer.equals("Success"))
+                                            System.out.println(Colors.ANSI_PURPLE + "\nFlight updated." + Colors.ANSI_RESET);
+                                        else
+                                            System.out.println(Colors.ANSI_RED + "\nNo flight ID matches description." + Colors.ANSI_RESET);
+
                                     }
                                     case "0" -> homeMenuQuit = true;
                                     default -> System.out.println(Colors.ANSI_RED + "\nInvalid option." + Colors.ANSI_RESET);

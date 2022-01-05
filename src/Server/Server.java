@@ -56,8 +56,12 @@ public class Server {
         File file = new File("model.ser");
         if (file.exists())
             model = Model.deserialize("model.ser");
-        else
+        else {
             model = new Model();
+            try {
+                model.addClient("admin", "admin");
+            } catch (EmailAlreadyExistsException ignored) {}
+        }
 
         while(true) {
 
@@ -286,6 +290,30 @@ public class Server {
 
                                 if (answer.equals("Success")) serialize(model);
                             }
+                            case 11 -> {
+
+                                System.out.println("Listing the closed days attempt.");
+
+                                connection.send(11, f.username, model.getClosedDays().getBytes());
+
+                            }
+                            case 12 -> {
+
+                                System.out.println("Marking that flight has left attempt.");
+
+                                String answer;
+
+                                try {
+                                    model.setFlightAsTakenOff(Arrays.toString(f.data));
+                                    answer = "Success";
+                                } catch (FlightDoesntExistException e) {
+                                    answer = "Error";
+                                }
+
+                                connection.send(12, f.username, answer.getBytes());
+
+                            }
+                            default -> {}
                         }
                     }
 

@@ -221,6 +221,19 @@ public class Model implements Serializable {
     }
 
     /**
+     * Sets flight as taken off
+     * @param flightID Flight ID
+     * @throws FlightDoesntExistException The flight ID has no flight associated
+     */
+    public void setFlightAsTakenOff(String flightID) throws FlightDoesntExistException {
+
+        if (this.flights.containsKey(flightID))
+            this.flights.get(flightID).setToGo(false);
+        else
+            throw new FlightDoesntExistException();
+    }
+
+    /**
      * Checks if all the flights are free to be placed in a reservation
      * @param flightsID List of flights ID's
      * @throws UnavailableFlightException Flight is full
