@@ -3,13 +3,13 @@ package Exceptions;
 /**
  * Exception that happens when the client does not have the reservation that is being removed
  */
-public class DoesntExistReservationFromClient extends Exception{
+public class DoesntExistReservationFromClientException extends Exception{
 
     /**
      * Exception constructor
      * @param s Explains the exception
      */
-    public DoesntExistReservationFromClient(String s){
+    public DoesntExistReservationFromClientException(String s){
         super(s);
     }
 }

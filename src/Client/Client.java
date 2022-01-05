@@ -202,6 +202,7 @@ public class Client {
                                 System.out.println(Colors.ANSI_CYAN + "2. " + Colors.ANSI_RESET + "Get existing flights.");
                                 System.out.println(Colors.ANSI_CYAN + "3. " + Colors.ANSI_RESET + "Remove reservation.");
                                 System.out.println(Colors.ANSI_CYAN + "4. " + Colors.ANSI_RESET + "Get list of reservations made.");
+                                System.out.println(Colors.ANSI_CYAN + "5. " + Colors.ANSI_RESET + "Get possible routes between two cities.");
                                 System.out.println(Colors.ANSI_CYAN + "0. " + Colors.ANSI_RESET + "Quit.");
                                 System.out.print(Colors.ANSI_YELLOW + "\nInsert option: " + Colors.ANSI_RESET);
 
@@ -252,7 +253,7 @@ public class Client {
                                                                 else
                                                                     notice = (Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
                                                             } catch (IOException | InterruptedException e) {
-                                                                notice = (Colors.ANSI_RED + "\nError." + Colors.ANSI_RESET);
+                                                                notice = (Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
                                                             }
 
                                                             l.lock();
@@ -299,7 +300,7 @@ public class Client {
                                                                 } else
                                                                     notice = (Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
                                                             } catch (IOException | InterruptedException e) {
-                                                                notice = (Colors.ANSI_RED + "\nError." + Colors.ANSI_RESET);
+                                                                notice = (Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
                                                             }
 
                                                             l.lock();
@@ -353,6 +354,23 @@ public class Client {
                                         System.out.println(new String(dm.receive(9)));
                                         System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed." + Colors.ANSI_RESET);
                                         input.readLine();
+                                    }
+                                    case "5" -> {
+
+                                        System.out.println(Colors.ANSI_GREEN + "\n********** Possible routes **********\n" + Colors.ANSI_RESET);
+                                        System.out.print(Colors.ANSI_YELLOW + "Insert origin: " + Colors.ANSI_RESET);
+                                        String origin = input.readLine();
+                                        System.out.print(Colors.ANSI_YELLOW + "Insert destination: " + Colors.ANSI_RESET);
+                                        String destination = input.readLine();
+
+                                        dm.send(8, username, (origin.toUpperCase() + " " + destination.toUpperCase()).getBytes());
+
+                                        String answer = new String(dm.receive(8));
+                                        if (answer.equals("Error"))
+                                            System.out.println(Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
+                                        else
+                                            System.out.println("\n" + answer);
+
                                     }
                                     case "0" -> homeMenuQuit = true;
                                     default -> System.out.println(Colors.ANSI_RED + "\nInvalid option." + Colors.ANSI_RESET);

@@ -11,12 +11,4 @@ public class UnavailableFlightException extends Exception{
     public UnavailableFlightException(){
         super();
     }
-
-    /**
-     * Exception constructor
-     * @param m Explanation of the exception
-     */
-    public UnavailableFlightException(String m){
-        super(m);
-    }
 }

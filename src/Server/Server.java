@@ -228,7 +228,7 @@ public class Server {
                                         try {
                                             answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
                                             if (answer.equals("")) answer = "Error";
-                                        } catch (OnlyClosedDaysException | UnavailableFlightException | FlightAlreadyDeparted | FlightDoesntExistException e) {
+                                        } catch (OnlyClosedDaysException | UnavailableFlightException  | FlightDoesntExistException e) {
                                             answer = "Error";
                                         }
 
@@ -255,7 +255,7 @@ public class Server {
                                 try {
                                     model.removeReservationByClient(id, username);
                                     answer = "Success";
-                                } catch (DoesntExistReservationFromClient e) {
+                                } catch (DoesntExistReservationFromClientException e) {
                                     answer = "Error";
                                 }
 
@@ -270,6 +270,21 @@ public class Server {
 
                                 connection.send(7, f.username, model.getFlightsString().getBytes());
 
+                            }
+                            case 8 -> { // Get list of routes between 2 cities
+
+                                String cities = new String(f.data);
+                                String origin = cities.split(" ")[0];
+                                String destination = cities.split(" ")[1];
+
+                                String answer;
+                                try {
+                                    answer = model.getRoutes(City.valueOf(origin), City.valueOf(destination));
+                                } catch (IllegalArgumentException e) {
+                                    answer = "Error";
+                                }
+
+                                connection.send(8, f.username, answer.getBytes());
                             }
                             case 9 -> {
 
@@ -289,7 +304,7 @@ public class Server {
                                     model.removeClosedDay(date);
                                     answer = "Success";
 
-                                } catch (NotAClosedDay | DateTimeParseException e) {
+                                } catch (NotAClosedDayException | DateTimeParseException e) {
                                     answer = "Error";
                                 }
 

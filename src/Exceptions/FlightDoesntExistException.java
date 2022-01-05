@@ -10,12 +10,4 @@ public class FlightDoesntExistException extends Exception{
     public FlightDoesntExistException(){
         super();
     }
-
-    /**
-     * Exception constructor
-     * @param s String that explain the exception
-     */
-    public FlightDoesntExistException(String s){
-        super(s);
-    }
 }
