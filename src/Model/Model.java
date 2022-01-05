@@ -519,58 +519,6 @@ public class Model implements Serializable {
         }
     }
 
-
-    /*
-
-    public List<List<Flight>> getFlightsWithOneStopOnSameDateWithDateRange(City origin, City destination, LocalDate begin, LocalDate end){
-        List<List<Flight>> ans = new ArrayList<>();
-        List<Flight> fromOrigin = getFlightsFromCityWithDateRange(origin, begin, end);
-        if(!fromOrigin.isEmpty()){
-            List<Flight> toDestination = getFlightsToCityWithDateRange(destination, begin, end);
-            if(!toDestination.isEmpty())
-                for(Flight f : toDestination){
-                    City o = f.getOrigin();
-                    LocalDate d = f.getDate();
-                    for(Flight fl : fromOrigin)
-                        if(fl.getDestination().equals(o) && fl.getDate().equals(d)){
-                            List<Flight> toAdd = new ArrayList<>();
-                            toAdd.add(f.clone());
-                            toAdd.add(fl.clone());
-                            ans.add(toAdd);
-                        }
-                }
-        }
-        return ans;
-    }
-
-    public List<List<Flight>> getFlightsWithTwoStopsOnSameDateWithDateRange(City origin, City destination, LocalDate begin, LocalDate end){
-        List<List<Flight>> ans = new ArrayList<>();
-        List<Flight> fromOrigin = getFlightsFromCityWithDateRange(origin, begin, end);
-        if(!fromOrigin.isEmpty()){
-            List<Flight> toDestination = getFlightsToCityWithDateRange(destination, begin, end);
-            if(!toDestination.isEmpty()) {
-                Set<Flight> withoutCities = getFlightsWithoutCities(origin, destination);
-                for (Flight f : withoutCities) {
-                    City o = f.getOrigin();
-                    City d = f.getDestination();
-                    LocalDate dF = f.getDate();
-                    for (Flight flO : fromOrigin)
-                        if (flO.getDestination().equals(o) && flO.getDate().equals(dF)) {
-                            for(Flight flD : toDestination)
-                                if(flD.getOrigin().equals(d) && flD.getDate().equals(dF)){
-                                    List<Flight> toAdd = new ArrayList<>();
-                                    toAdd.add(flO.clone());
-                                    toAdd.add(f.clone());
-                                    toAdd.add(flD.clone());
-                                    ans.add(toAdd);
-                                }
-                        }
-                }
-            }
-        }
-        return ans;
-    }
-
     public List<Flight> getFlightsFromCity(City c){
         List<Flight> ans = new ArrayList<>();
         for(String id : this.flights.keySet()){
@@ -588,25 +536,6 @@ public class Model implements Serializable {
         }
         return ans;
     }
-
-    public List<Flight> getFlightsToCityWithDateRange(City c, LocalDate begin, LocalDate end){
-        List<Flight> ans = new ArrayList<>();
-        for(String id : this.flights.keySet()){
-            Flight f = this.flights.get(id);
-            if(f.getDestination().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f.clone());
-        }
-        return ans;
-    }
-
-    public List<Flight> getFlightsFromCityWithDateRange(City c, LocalDate begin, LocalDate end){
-        List<Flight> ans = new ArrayList<>();
-        for(String id : this.flights.keySet()){
-            Flight f = this.flights.get(id);
-            if(f.getOrigin().equals(c) && Utilities.isInRange(begin, end, f.getDate())) ans.add(f.clone());
-        }
-        return ans;
-    }
-
 
     public Set<Flight> getFlightsWithoutCities(City c1, City c2){
         Set<Flight> ans = new HashSet<>();
@@ -664,31 +593,40 @@ public class Model implements Serializable {
         return ans;
     }
 
-    // Provavelmente dá pra otimizar isto, aliás, não faz sentido estar sempre a adicionar a cidade de origem e destino, deve dar pra fazer algo com Map.Entry, mas pra já, é o que é
-    public List<Route> getRoutes(City origin, City destination){
-        List<Route> ans = new ArrayList<>();
+    public List<List<Flight>> getRoutesWithMaximum2Stops(City origin, City destination){
+        List<List<Flight>> ans = new ArrayList<>();
 
-        List<Flight> flights = getFlightsWithOriginAndDestination(origin, destination);
+        List<Flight> flights = getFlightsWithOriginDestination(origin, destination);
         if(flights != null && !flights.isEmpty())
             for(Flight f : flights){
                 List<Flight> toAdd = new ArrayList<>();
                 toAdd.add(f.clone());
-                ans.add(new Route(origin, destination, toAdd));
+                ans.add(toAdd);
             }
 
         List<List<Flight>> flights1stop = getFlightsWithOneStop(origin, destination);
         if(flights1stop != null && !flights1stop.isEmpty())
-            for(List<Flight> fls : flights1stop)
-                ans.add(new Route(origin, destination, fls));
+            ans.addAll(flights1stop);
 
         List<List<Flight>> flights2stop = getFlightsWithTwoStops(origin, destination);
         if(flights2stop != null && !flights2stop.isEmpty())
-            for(List<Flight> fls : flights2stop)
-                ans.add(new Route(origin, destination, fls));
+            ans.addAll(flights2stop);
 
         return ans;
     }
-    */
+
+    public String getRoutes(City origin, City destination){
+        List<List<Flight>> routes = getRoutesWithMaximum2Stops(origin, destination);
+        StringBuilder ans = new StringBuilder();
+        if(routes != null){
+            for(List<Flight> fls : routes){
+                for(Flight f : fls)
+                    ans.append("<-> Flight ").append(f.getID()).append(": ").append(f.getOrigin()).append("->").append(f.getDestination()).append("\n");
+                ans.append("-------------------------------------------------------\n");
+            }
+        }
+        return (!ans.isEmpty()) ? ans.toString() : "No flights to show";
+    }
 
     /*
 
