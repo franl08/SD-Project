@@ -44,7 +44,7 @@ public class Client {
                     Initial Menu: Login + Registration
 
              */
-            System.out.println(Colors.ANSI_GREEN +
+            System.out.println(Colors.ANSI_GREEN + "\n\n\n" +
                     "______  ______        ______       _______________            \n" +
                     "___  / / /__(_)______ ___  /_      ___  ____/__  /____  __    \n" +
                     "__  /_/ /__  /__  __ `/_  __ \\     __  /_   __  /__  / / /    \n" +
@@ -111,10 +111,8 @@ public class Client {
                                         String destination = input.readLine();
                                         System.out.print(Colors.ANSI_YELLOW + "Insert max number of passengers: " + Colors.ANSI_RESET);
                                         String max = input.readLine();
-                                        System.out.print(Colors.ANSI_YELLOW + "Insert date of flight (yyyy-mm-dd): " + Colors.ANSI_RESET);
-                                        String date = input.readLine();
 
-                                        byte[] flight = String.format("%s %s %s %s", origin, destination, max, date).getBytes();
+                                        byte[] flight = String.format("%s %s %s", origin, destination, max).getBytes();
                                         dm.send(2, username, flight);
 
                                         String answerFlightAdd = new String(dm.receive(2));
@@ -160,15 +158,16 @@ public class Client {
 
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Close day listing **********\n" + Colors.ANSI_RESET);
                                         System.out.println(listingClosedDays);
-                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed. " + Colors.ANSI_RESET);
+                                        System.out.print(Colors.ANSI_PURPLE + "\nEnter any key to proceed. " + Colors.ANSI_RESET);
                                         input.readLine();
 
                                     }
                                     case "5" -> {
                                         dm.send(7, username, "0".getBytes());
+                                        String data = new String(dm.receive(7));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
-                                        System.out.println(new String(dm.receive(7)));
-                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed. " + Colors.ANSI_RESET);
+                                        System.out.println(data);
+                                        System.out.print(Colors.ANSI_PURPLE + "\nPress any key to proceed. " + Colors.ANSI_RESET);
                                         input.readLine();
                                     }
                                     case "0" -> homeMenuQuit = true;
@@ -232,7 +231,7 @@ public class Client {
                                                             flights.append(flightIDInserted).append(" ");
                                                     }
 
-                                                    System.out.print("Insert date (yyyy-mm-dd): ");
+                                                    System.out.print(Colors.ANSI_YELLOW + "Insert date (yyyy-mm-dd): " + Colors.ANSI_RESET);
                                                     String date = input.readLine();
 
                                                     if (!date.equals("") && !flights.isEmpty()) {
@@ -327,9 +326,10 @@ public class Client {
                                     case "2" -> {
 
                                         dm.send(7, username, "0".getBytes());
+                                        String data = new String(dm.receive(7));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
-                                        System.out.println(new String(dm.receive(7)));
-                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed. " + Colors.ANSI_RESET);
+                                        System.out.println(data);
+                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed:  " + Colors.ANSI_RESET);
                                         input.readLine();
 
                                     }
@@ -348,10 +348,10 @@ public class Client {
                                     case "4" -> { // Get listing
 
                                         dm.send(9, username, "0".getBytes());
-
+                                        String data = new String(dm.receive(9));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Reservations made **********\n" + Colors.ANSI_RESET);
-                                        System.out.println(new String(dm.receive(9)));
-                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed." + Colors.ANSI_RESET);
+                                        System.out.println(data);
+                                        System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed: " + Colors.ANSI_RESET);
                                         input.readLine();
                                     }
                                     case "5" -> {
@@ -367,8 +367,11 @@ public class Client {
                                         String answer = new String(dm.receive(8));
                                         if (answer.equals("Error"))
                                             System.out.println(Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
-                                        else
+                                        else {
                                             System.out.println("\n" + answer);
+                                            System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed: " + Colors.ANSI_RESET);
+                                            input.readLine();
+                                        }
 
                                     }
                                     case "0" -> homeMenuQuit = true;

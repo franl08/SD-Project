@@ -59,7 +59,7 @@ public class Server {
         else {
             model = new Model();
             try {
-                model.addClient("admin", "admin");
+                model.addClient("admin@highfly.pt", "admin");
             } catch (EmailAlreadyExistsException ignored) {}
         }
 
