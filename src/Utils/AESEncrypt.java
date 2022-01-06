@@ -5,9 +5,20 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Arrays;
 
+/**
+ * Encryption class
+ */
 public class AESEncrypt {
+    /**
+     * Key to generate AES
+     */
     private static final byte[] tlsKey = "UkXp2s5v8y/B?E(H+MbQeThVmYq3t6w9".getBytes();
 
+    /**
+     * Encryption method
+     * @param data String to encrypt
+     * @return Encrypted String
+     */
     public static String encrypt(String data) {
         try {
             Key key = new SecretKeySpec(tlsKey, "AES");
@@ -19,6 +30,11 @@ public class AESEncrypt {
         return data;
     }
 
+    /**
+     * Decrypt method
+     * @param encryptedData Encrypted string
+     * @return Decrypted string
+     */
     public static String decrypt(String encryptedData) {
         try {
             Key key = new SecretKeySpec(tlsKey, "AES");

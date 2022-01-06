@@ -2,6 +2,7 @@ package Model;
 
 import Exceptions.*;
 import Utils.City;
+import Utils.Utilities;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -106,11 +107,13 @@ public class Model implements Serializable {
      * @param email Email
      * @param password Password
      * @throws EmailAlreadyExistsException There already is a client registered under that email
+     * @throws NotAnEmailException Invalid email format
      */
-    public void addClient(String email, String password) throws EmailAlreadyExistsException {
+    public void addClient(String email, String password) throws EmailAlreadyExistsException, NotAnEmailException {
         l.writeLock().lock();
         try {
             if (this.clients.containsKey(email)) throw new EmailAlreadyExistsException();
+            if (Utilities.checkEmail(email) != 1) throw new NotAnEmailException();
             this.clients.put(email, password);
         } finally {
             l.writeLock().unlock();
