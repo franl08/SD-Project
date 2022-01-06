@@ -188,9 +188,10 @@ public class Model implements Serializable {
      * @throws UnavailableFlightException Flight is full
      * @throws FlightDoesntExistException Flight doesn't exist
      */
-    public void checkSetOfFlightsToReservation(Set<String> flightsID, LocalDate date) throws UnavailableFlightException, FlightDoesntExistException, OnlyClosedDaysException{
+    public void checkSetOfFlightsToReservation(Set<String> flightsID, LocalDate date) throws UnavailableFlightException, FlightDoesntExistException, OnlyClosedDaysException, DayHasPassedException {
 
         if(this.closedDays.contains(date)) throw new OnlyClosedDaysException();
+        if (date.isBefore(LocalDate.now())) throw new DayHasPassedException();
         for (String fID : flightsID) {
             Flight f = this.flights.getOrDefault(fID, null);
             if (f == null) throw new FlightDoesntExistException();
@@ -199,10 +200,10 @@ public class Model implements Serializable {
             if (resIdsOnDate != null) {
                 for (String rID : resIdsOnDate) {
                     Reservation r = this.reservations.get(rID);
-                    if (r.getFlightsID().contains(fID)) totalReservationsOfFlight++;
+                    if (r.getFlightsID().contains(fID)) totalReservationsOfFlight++; // TODO
                 }
             }
-            if(totalReservationsOfFlight > f.getnMaxPassengers()) throw new UnavailableFlightException();
+            if(totalReservationsOfFlight >= f.getnMaxPassengers()) throw new UnavailableFlightException();
         }
     }
 
@@ -335,7 +336,7 @@ public class Model implements Serializable {
      * @throws FlightDoesntExistException A flight does not exist
      * @throws UnavailableFlightException A flight is unavailable
      */
-    public String createReservation(String clientID, Set<String> flightsID, LocalDate date) throws FlightDoesntExistException, UnavailableFlightException, OnlyClosedDaysException {
+    public String createReservation(String clientID, Set<String> flightsID, LocalDate date) throws FlightDoesntExistException, UnavailableFlightException, OnlyClosedDaysException, DayHasPassedException {
         l.writeLock().lock();
         try {
             checkSetOfFlightsToReservation(flightsID, date);
@@ -471,7 +472,7 @@ public class Model implements Serializable {
      * @param end End of the date range
      * @return Reservation rode
      */
-    public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException, FlightDoesntExistException {
+    public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException, FlightDoesntExistException, DayHasPassedException{
         Map.Entry<LocalDate, Set<String>> flightsAndDate = getAvailableListOfFlightsInDataRange(desiredCities, begin, end);
         return createReservation(username, flightsAndDate.getValue(), flightsAndDate.getKey());
     }

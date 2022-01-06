@@ -177,8 +177,7 @@ public class Server {
                                     try {
                                         LocalDate date = LocalDate.parse(dateS);
                                         answer = model.createReservation(f.username, pathSet, date);
-                                    } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException e) {
-                                        e.printStackTrace();
+                                    } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException | DayHasPassedException e) {
                                         answer = "Error";
                                     }
 
@@ -228,7 +227,7 @@ public class Server {
                                         try {
                                             answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
                                             if (answer.equals("")) answer = "Error";
-                                        } catch (OnlyClosedDaysException | UnavailableFlightException  | FlightDoesntExistException e) {
+                                        } catch (OnlyClosedDaysException | UnavailableFlightException  | FlightDoesntExistException | DayHasPassedException e) {
                                             answer = "Error";
                                         }
 
@@ -272,6 +271,8 @@ public class Server {
 
                             }
                             case 8 -> { // Get list of routes between 2 cities
+
+                                System.out.println("Getting list of routes.");
 
                                 String cities = new String(f.data);
                                 String origin = cities.split(" ")[0];
