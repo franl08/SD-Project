@@ -2,7 +2,9 @@ package Server;
 
 import Exceptions.*;
 import Model.Model;
+import Utils.AESEncrypt;
 import Utils.City;
+import Utils.Log;
 import Utils.TaggedConnection.Frame;
 import Utils.TaggedConnection;
 
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -59,9 +62,12 @@ public class Server {
         else {
             model = new Model();
             try {
-                model.addClient("admin@highfly.pt", "admin");
-            } catch (EmailAlreadyExistsException ignored) {}
+                model.addClient("admin@highfly.pt", AESEncrypt.encrypt("admin"));
+            } catch (EmailAlreadyExistsException | NotAnEmailException ignored) {}
         }
+
+        Log log = new Log();
+        log.appendSeparator(LocalDateTime.now());
 
         while(true) {
 
@@ -93,6 +99,8 @@ public class Server {
 
                                 connection.send(f.tag, "", answer.getBytes());
 
+                                if (answer.equals("Success")) log.appendMessage("Logged in: " + f.username);
+
                             }
                             case 1 -> { // Registration attempts
 
@@ -106,37 +114,39 @@ public class Server {
                                     model.addClient(email, password);
                                     answer = "Success";
 
-                                } catch (EmailAlreadyExistsException e) {
+                                } catch (EmailAlreadyExistsException | NotAnEmailException e) {
                                     answer = "Error";
                                 }
 
                                 connection.send(f.tag, "", answer.getBytes());
 
-                                if (answer.equals("Success")) serialize(model);
+                                if (answer.equals("Success")) {
+                                    serialize(model);
+                                    log.appendMessage("Registered new user: " + f.username);
+                                }
 
                             }
                             case 2 -> { // Add flight information
 
                                 System.out.println("Adding flight attempt.");
 
-                                String answer = "Error";
+                                String answer;
 
-                                if (f.username.equals("admin")) {
+                                String flightData = new String(f.data);
+                                String[] flightDataParsed = flightData.split(" ");
 
-                                    String flightData = new String(f.data);
-                                    String[] flightDataParsed = flightData.split(" ");
-
-                                    try {
-                                        answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()));
-                                    } catch (IllegalArgumentException e) {
-                                        answer = "Error";
-                                    }
-
+                                try {
+                                    answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()));
+                                } catch (IllegalArgumentException e) {
+                                    answer = "Error";
                                 }
 
                                 connection.send(f.tag, f.username, answer.getBytes());
 
-                                if (!answer.equals("Error")) serialize(model);
+                                if (!answer.equals("Error")) {
+                                    serialize(model);
+                                    log.appendMessage("Added flight with ID " + answer + " by " + f.username);
+                                }
 
                             }
                             case 3 -> { // Close a day
@@ -148,16 +158,17 @@ public class Server {
 
                                 try {
                                     model.addClosedDay(LocalDate.parse(date));
-                                    System.out.println(date);
                                     answer = "Success";
-                                } catch (Exception e) {
+                                } catch (AlreadyIsAClosedDayException | DateTimeParseException e) {
                                     answer = "Error";
-                                    e.printStackTrace();
                                 }
 
                                 connection.send(f.tag, f.username, answer.getBytes());
 
-                                if (answer.equals("Success")) serialize(model);
+                                if (answer.equals("Success")) {
+                                    serialize(model);
+                                    log.appendMessage("Closed day: " + date + " by " + f.username);
+                                }
 
                             }
                             case 4 ->  // Make reservation for a trip by flight ID
@@ -187,7 +198,10 @@ public class Server {
                                         System.out.println("Error sending.");
                                     }
 
-                                    if (!answer.equals("Error")) serialize(model);
+                                    if (!answer.equals("Error")) {
+                                        serialize(model);
+                                        log.appendMessage("User " + f.username + "made a reservation. Code: " + answer);
+                                    }
 
                                 }).start();
 
@@ -226,7 +240,6 @@ public class Server {
 
                                         try {
                                             answer = model.createReservationGivenCities(f.username, cities, beginDate, endDate);
-                                            if (answer.equals("")) answer = "Error";
                                         } catch (OnlyClosedDaysException | UnavailableFlightException  | FlightDoesntExistException | DayHasPassedException e) {
                                             answer = "Error";
                                         }
@@ -239,7 +252,10 @@ public class Server {
                                         System.out.println("Error sending");
                                     }
 
-                                    if (!answer.equals("Error")) serialize(model);
+                                    if (!answer.equals("Error")) {
+                                        serialize(model);
+                                        log.appendMessage("User " + f.username + "made a reservation. Code: " + answer);
+                                    }
 
                                 }).start();
 
@@ -260,7 +276,10 @@ public class Server {
 
                                 connection.send(6, f.username, answer.getBytes());
 
-                                if (answer.equals("Success")) serialize(model);
+                                if (answer.equals("Success")) {
+                                    serialize(model);
+                                    log.appendMessage("User " + f.username + " cancelled reservation with code " + id);
+                                }
 
                             }
                             case 7 -> { // List all flights
@@ -268,6 +287,8 @@ public class Server {
                                 System.out.println("Listing all flights attempt.");
 
                                 connection.send(7, f.username, model.getFlightsString().getBytes());
+
+                                log.appendMessage("Sent flights listing to user " + f.username);
 
                             }
                             case 8 -> { // Get list of routes between 2 cities
@@ -286,12 +307,16 @@ public class Server {
                                 }
 
                                 connection.send(8, f.username, answer.getBytes());
+
+                                log.appendMessage("Sent available routes from " + origin + " to " + destination);
                             }
                             case 9 -> {
 
                                 System.out.println("Listing all reservation from user.");
 
                                 connection.send(9, f.username, model.getReservationsStringFromUser(f.username).getBytes());
+
+                                log.appendMessage("Sent list of reservations made by the user to " + f.username);
 
                             }
                             case 10 -> {
@@ -311,13 +336,18 @@ public class Server {
 
                                 connection.send(10, f.username, answer.getBytes());
 
-                                if (answer.equals("Success")) serialize(model);
+                                if (answer.equals("Success")) {
+                                    serialize(model);
+                                    log.appendMessage("Removed closed day " + dateS + " by " + f.username);
+                                }
                             }
                             case 11 -> {
 
                                 System.out.println("Listing the closed days attempt.");
 
                                 connection.send(11, f.username, model.getClosedDays().getBytes());
+
+                                log.appendMessage("Sent list of closed days to " + f.username);
 
                             }
                             default -> {}

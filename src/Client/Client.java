@@ -1,5 +1,6 @@
 package Client;
 
+import Utils.AESEncrypt;
 import Utils.Demultiplexer;
 import Utils.TaggedConnection;
 import Utils.Colors;
@@ -11,7 +12,9 @@ import java.net.Socket;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Class that represents a client. Needs an instance of Server running to work
@@ -75,7 +78,7 @@ public class Client {
                     System.out.print(Colors.ANSI_YELLOW + "Insert password: " + Colors.ANSI_RESET);
                     String password = input.readLine();
 
-                    dm.send(0, username, password.getBytes());
+                    dm.send(0, username, AESEncrypt.encrypt(password).getBytes());
 
                     String answerLogin = new String(dm.receive(0));
                     if (answerLogin.equals("Success")) {
@@ -83,7 +86,7 @@ public class Client {
                         boolean homeMenuQuit = false;
                         while (!homeMenuQuit) {
 
-                            if (username.equals("admin")) {
+                            if (username.equals("admin@highfly.pt")) {
 
                             /*
 
@@ -119,7 +122,7 @@ public class Client {
                                         if (!answerFlightAdd.equals("Error"))
                                             System.out.println(Colors.ANSI_PURPLE + "\nFlight successfully added with code " + Colors.ANSI_RESET + answerFlightAdd);
                                         else
-                                            System.out.println(Colors.ANSI_RED + "\nError in inputs inserted or closed day." + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_RED + "\nError in inputs inserted." + Colors.ANSI_RESET);
 
                                     }
                                     case "2" -> { // Close day
@@ -128,13 +131,19 @@ public class Client {
                                         System.out.print(Colors.ANSI_YELLOW + "Insert date (yyyy-mm-dd): " + Colors.ANSI_RESET);
                                         String date = input.readLine();
 
-                                        dm.send(3, username, date.getBytes());
+                                        if (date.equals("")) {
+                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                                        } else {
 
-                                        String closingDayAnswer = new String(dm.receive(3));
-                                        if (closingDayAnswer.equals("Success"))
-                                            System.out.println(Colors.ANSI_PURPLE + "\nDay successfully closed." + Colors.ANSI_RESET);
-                                        else
-                                            System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
+                                            dm.send(3, username, date.getBytes());
+
+                                            String closingDayAnswer = new String(dm.receive(3));
+                                            if (closingDayAnswer.equals("Success"))
+                                                System.out.println(Colors.ANSI_PURPLE + "\nDay successfully closed." + Colors.ANSI_RESET);
+                                            else
+                                                System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
+
+                                        }
 
                                     }
                                     case "3" -> {
@@ -398,13 +407,14 @@ public class Client {
                     System.out.print(Colors.ANSI_YELLOW + "Insert password: " + Colors.ANSI_RESET);
                     String password = input.readLine();
 
-                    dm.send(1, username, password.getBytes());
+                    System.out.println(AESEncrypt.encrypt(password));
+                    dm.send(1, username, AESEncrypt.encrypt(password).getBytes());
 
                     String answerLogin = new String(dm.receive(1));
                     if (answerLogin.equals("Success"))
                         System.out.println(Colors.ANSI_PURPLE + "\nAccount successfully created." + Colors.ANSI_RESET);
                     else
-                        System.out.println(Colors.ANSI_RED + "\nEmail already taken." + Colors.ANSI_RESET);
+                        System.out.println(Colors.ANSI_RED + "\nInvalid credentials." + Colors.ANSI_RESET);
 
                 }
                 case "0" -> {

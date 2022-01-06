@@ -30,19 +30,4 @@ public class AESEncrypt {
         return data;
     }
 
-    /**
-     * Decrypt method
-     * @param encryptedData Encrypted string
-     * @return Decrypted string
-     */
-    public static String decrypt(String encryptedData) {
-        try {
-            Key key = new SecretKeySpec(tlsKey, "AES");
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.DECRYPT_MODE, key);
-            return new String(c.doFinal(encryptedData.getBytes()));
-        } catch (Exception ignored) {}
-
-        return encryptedData;
-    }
 }
