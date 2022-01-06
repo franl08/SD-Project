@@ -93,10 +93,18 @@ public class Reservation implements Serializable {
         this.flightsID.addAll(flightsID);
     }
 
+    /**
+     * Gets the date of a reservation
+     * @return Date
+     */
     public LocalDate getDate(){
         return this.date;
     }
 
+    /**
+     * Sets the date of a reservation
+     * @param date Date to Set
+     */
     public void setDate(LocalDate date){
         this.date = date;
     }

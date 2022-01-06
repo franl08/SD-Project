@@ -190,6 +190,8 @@ public class Model implements Serializable {
      * @param date Date of reservation
      * @throws UnavailableFlightException Flight is full
      * @throws FlightDoesntExistException Flight doesn't exist
+     * @throws OnlyClosedDaysException Date is a closed day
+     * @throws DayHasPassedException Date is in the past
      */
     public void checkSetOfFlightsToReservation(Set<String> flightsID, LocalDate date) throws UnavailableFlightException, FlightDoesntExistException, OnlyClosedDaysException, DayHasPassedException {
 
@@ -338,6 +340,8 @@ public class Model implements Serializable {
      * @return Reservation code
      * @throws FlightDoesntExistException A flight does not exist
      * @throws UnavailableFlightException A flight is unavailable
+     * @throws OnlyClosedDaysException Selected date is a closed day
+     * @throws DayHasPassedException Selected date is in the past
      */
     public String createReservation(String clientID, Set<String> flightsID, LocalDate date) throws FlightDoesntExistException, UnavailableFlightException, OnlyClosedDaysException, DayHasPassedException {
         l.writeLock().lock();
@@ -438,6 +442,8 @@ public class Model implements Serializable {
      * @param desiredCities Cities desired
      * @param begin Begin date
      * @param end Maximum end date
+     * @throws OnlyClosedDaysException Exception to prevent the case of Only Closed days on date range
+     * @throws UnavailableFlightException Exception to prevent unavailable flights to enter in the answer
      * @return Routes
      */
     public Map.Entry<LocalDate, Set<String>> getAvailableListOfFlightsInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException{
@@ -474,6 +480,10 @@ public class Model implements Serializable {
      * @param begin Beginning of the date range
      * @param end End of the date range
      * @return Reservation rode
+     * @throws OnlyClosedDaysException Exception to prevent a reservation on a closed day
+     * @throws UnavailableFlightException Exception to prevent a reservation of an unavailable flight
+     * @throws FlightDoesntExistException Exception to prevent a reservation of a non-existing flight
+     * @throws DayHasPassedException Exception to prevent a reservation on a past date
      */
     public String createReservationGivenCities(String username, List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException, FlightDoesntExistException, DayHasPassedException{
         Map.Entry<LocalDate, Set<String>> flightsAndDate = getAvailableListOfFlightsInDataRange(desiredCities, begin, end);

@@ -8,51 +8,177 @@ import java.util.Set;
  * Represents a city
  */
 public enum City implements Serializable {
+    /**
+     * City of Berlin
+     */
     BERLIN,
+    /**
+     * City of Vienna
+     */
     VIENNA,
+    /**
+     * City of Brussels
+     */
     BRUSSELS,
-    BANJA_LUKA,
+    /**
+     * City of Sofia
+     */
     SOFIA,
+    /**
+     * City of Zagreb
+     */
     ZAGREB,
+    /**
+     * City of Paphos
+     */
     PAPHOS,
+    /**
+     * City of Prague
+     */
     PRAGUE,
+    /**
+     * City of Copenhagen
+     */
     COPENHAGEN,
+    /**
+     * City of Tallinn
+     */
     TALLINN,
+    /**
+     * City of Helsinki
+     */
     HELSINKI,
+    /**
+     * City of Paris
+     */
     PARIS,
+    /**
+     * City of Athens
+     */
     ATHENS,
+    /**
+     * City of Budapest
+     */
     BUDAPEST,
+    /**
+     * City of Dublin
+     */
     DUBLIN,
-    TEL_AVIV,
+    /**
+     * City of Rome
+     */
     ROME,
+    /**
+     * City of Riga
+     */
     RIGA,
+    /**
+     * City of Palanga
+     */
     PALANGA,
+    /**
+     * City of Luxembourg
+     */
     LUXEMBOURG,
+    /**
+     * City of Malta
+     */
     MALTA,
+    /**
+     * City of Podgorica
+     */
     PODGORICA,
+    /**
+     * City of Rabat
+     */
     RABAT,
+    /**
+     * City of Amsterdam
+     */
     AMSTERDAM,
+    /**
+     * City of Oslo
+     */
     OSLO,
+    /**
+     * City of Kraków
+     */
     KRAKOW,
+    /**
+     * City of Lisbon
+     */
     LISBON,
+    /**
+     * City of Bucharest
+     */
     BUCHAREST,
+    /**
+     * City of Nis
+     */
     NIS,
+    /**
+     * City of Bratislava
+     */
     BRATISLAVA,
+    /**
+     * City of Madrid
+     */
     MADRID,
+    /**
+     * City of Stockholm
+     */
     STOCKHOLM,
+    /**
+     * City of Zurich
+     */
     ZURICH,
+    /**
+     * City of Bodrum
+     */
     BODRUM,
+    /**
+     * City of Kyiv
+     */
     KYIV,
+    /**
+     * City of London
+     */
     LONDON,
+    /**
+     * City of Tokyo
+     */
     TOKYO,
+    /**
+     * City of Seoul
+     */
     SEOUL,
-    NEW_YORK,
+    /**
+     * City of New York
+     */
+    NY,
+    /**
+     * City of Luanda
+     */
     LUANDA,
-    MEXICO_CITY,
+    /**
+     * City of Toronto
+     */
     TORONTO,
+    /**
+     * City of Sydney
+     */
     SYDNEY,
+    /**
+     * City of Brasília
+     */
     BRASILIA,
+    /**
+     * City of Bangkok
+     */
     BANGKOK,
+    /**
+     * City of Dubai
+     */
     DUBAI;
 
     /**
@@ -69,9 +195,6 @@ public enum City implements Serializable {
             }
             case BRUSSELS -> {
                 return "Brussels";
-            }
-            case BANJA_LUKA -> {
-                return "Banja Luka";
             }
             case SOFIA -> {
                 return "Sofia";
@@ -105,9 +228,6 @@ public enum City implements Serializable {
             }
             case DUBLIN -> {
                 return "Dublin";
-            }
-            case TEL_AVIV -> {
-                return "Tel Aviv";
             }
             case ROME -> {
                 return "Rome";
@@ -175,14 +295,11 @@ public enum City implements Serializable {
             case SEOUL -> {
                 return "Seoul";
             }
-            case NEW_YORK -> {
+            case NY -> {
                 return "New York";
             }
             case LUANDA -> {
                 return "Luanda";
-            }
-            case MEXICO_CITY -> {
-                return "Mexico City";
             }
             case TORONTO -> {
                 return "Toronto";
@@ -203,93 +320,6 @@ public enum City implements Serializable {
                 return "Heaven";
             }
         }
-    }
-
-    public Set<City> getCitiesWithFirstChar(char c){
-        Set<City> ans = new HashSet<>();
-        switch(c){
-            case 'A' -> {
-                ans.add(AMSTERDAM);
-                ans.add(ATHENS);
-            }
-            case 'B' -> {
-                ans.add(BANGKOK);
-                ans.add(BANJA_LUKA);
-                ans.add(BERLIN);
-                ans.add(BODRUM);
-                ans.add(BRASILIA);
-                ans.add(BRATISLAVA);
-                ans.add(BRUSSELS);
-                ans.add(BUCHAREST);
-                ans.add(BUDAPEST);
-            }
-            case 'C' -> {
-                ans.add(COPENHAGEN);
-            }
-            case 'D' -> {
-                ans.add(DUBAI);
-                ans.add(DUBLIN);
-            }
-            case 'H' -> {
-                ans.add(HELSINKI);
-            }
-            case 'K' -> {
-                ans.add(KRAKOW);
-                ans.add(KYIV);
-            }
-            case 'L' -> {
-                ans.add(LISBON);
-                ans.add(LONDON);
-                ans.add(LUANDA);
-                ans.add(LUXEMBOURG);
-            }
-            case 'M' -> {
-                ans.add(MADRID);
-                ans.add(MALTA);
-                ans.add(MEXICO_CITY);
-            }
-            case 'N' -> {
-                ans.add(NEW_YORK);
-                ans.add(NIS);
-            }
-            case 'O' -> {
-                ans.add(OSLO);
-            }
-            case 'P' -> {
-                ans.add(PALANGA);
-                ans.add(PAPHOS);
-                ans.add(PARIS);
-                ans.add(PRAGUE);
-            }
-            case 'R' -> {
-                ans.add(RABAT);
-                ans.add(RIGA);
-                ans.add(ROME);
-            }
-            case 'S' -> {
-                ans.add(SEOUL);
-                ans.add(SOFIA);
-                ans.add(STOCKHOLM);
-                ans.add(SYDNEY);
-            }
-            case 'T' -> {
-                ans.add(TALLINN);
-                ans.add(TEL_AVIV);
-                ans.add(TOKYO);
-                ans.add(TORONTO);
-            }
-            case 'V' -> {
-                ans.add(VIENNA);
-            }
-            case 'Z' -> {
-                ans.add(ZAGREB);
-                ans.add(ZURICH);
-            }
-            default -> {
-
-            }
-        }
-        return ans;
     }
 
 }
