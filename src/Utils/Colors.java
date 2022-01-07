@@ -3,30 +3,30 @@ package Utils;
 /**
  * Represents colors to use in the interaction with the client
  */
-public class Colors {
+public interface Colors {
 
     /**
      * Color reset
      */
-    public static final String ANSI_RESET = "\u001B[0m";
+    String ANSI_RESET = "\u001B[0m";
     /**
      * Color red
      */
-    public static final String ANSI_RED = "\u001B[31m";
+    String ANSI_RED = "\u001B[31m";
     /**
      * Color green
      */
-    public static final String ANSI_GREEN = "\u001B[32m";
+    String ANSI_GREEN = "\u001B[32m";
     /**
      * Color yellow
      */
-    public static final String ANSI_YELLOW = "\u001B[33m";
+    String ANSI_YELLOW = "\u001B[33m";
     /**
      * Color purple
      */
-    public static final String ANSI_PURPLE = "\u001B[35m";
+    String ANSI_PURPLE = "\u001B[35m";
     /**
      * Color cyan
      */
-    public static final String ANSI_CYAN = "\u001B[36m";
+    String ANSI_CYAN = "\u001B[36m";
 }

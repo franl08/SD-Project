@@ -2,6 +2,7 @@ package Server;
 
 import Exceptions.*;
 import Model.Model;
+import Model.ModelFacade;
 import Utils.AESEncrypt;
 import Model.City;
 import Utils.Log;
@@ -16,18 +17,22 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class that allows running an instance of a Server
  */
 public class Server {
 
+    public static Lock l = new ReentrantLock();
+
     /**
      * Allows serializing the model to a file
      * @param model Model
      */
-    public static void serialize(Model model) {
-        model.l.writeLock().lock();
+    public static void serialize(ModelFacade model) {
+        l.lock();
         try {
             System.out.println("Serializing...");
             model.serialize("model.ser");
@@ -35,7 +40,7 @@ public class Server {
         } catch (IOException e) {
             System.out.println("Error serializing.");
         } finally {
-            model.l.writeLock().unlock();
+            l.unlock();
         }
     }
 
@@ -48,7 +53,7 @@ public class Server {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         ServerSocket ss = new ServerSocket(12345);
-        Model model;
+        ModelFacade model;
 
         /*
 
@@ -58,7 +63,7 @@ public class Server {
 
         File file = new File("model.ser");
         if (file.exists())
-            model = Model.deserialize("model.ser");
+            model = ModelFacade.deserialize("model.ser");
         else {
             model = new Model();
             try {
