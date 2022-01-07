@@ -1,9 +1,8 @@
 package Model;
 
-import Utils.City;
+import Utils.Colors;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 
 /**
  * Class that represents a flight
@@ -109,10 +108,10 @@ public class Flight implements Serializable {
      */
     public String toString(){
         StringBuilder sb = new StringBuilder();
-        sb.append("ID: ").append(this.ID).append("\n")
-                .append("Max Passengers: ").append(this.nMaxPassengers).append("\n")
-                .append("Origin: ").append(this.origin.toString())
-                .append(" -> Destination: ").append(this.destination.toString()).append("\n");
+        sb.append(Colors.ANSI_YELLOW + "ID: " + Colors.ANSI_RESET).append(this.ID).append("\n")
+                .append(Colors.ANSI_YELLOW + "Max Passengers: " + Colors.ANSI_RESET).append(this.nMaxPassengers).append("\n")
+                .append(Colors.ANSI_YELLOW + "Origin: " + Colors.ANSI_RESET).append(this.origin.toString())
+                .append(Colors.ANSI_YELLOW + " -> Destination: " + Colors.ANSI_RESET).append(this.destination.toString()).append("\n");
         sb.append("------------------------------------------------------------------\n");
         return sb.toString();
     }

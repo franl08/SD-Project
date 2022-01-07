@@ -1,7 +1,7 @@
 package Model;
 
 import Exceptions.*;
-import Utils.City;
+import Utils.Colors;
 import Utils.Utilities;
 
 import java.io.*;
@@ -69,12 +69,12 @@ public class Model implements Serializable {
             StringBuilder string = new StringBuilder();
 
             for (LocalDate date : this.closedDays) {
-                string.append("-> Date: ").append(date).append("\n");
+                string.append(Colors.ANSI_YELLOW + "-> Date: " + Colors.ANSI_RESET).append(date).append("\n");
             }
 
             if(this.closedDays.size() != 0)
-                string.append("---------------------------").append("\n\n");
-            return (string.isEmpty() ? "No closed days to show\n\n" :string.toString());
+                string.append(Colors.ANSI_CYAN + "---------------------------" + Colors.ANSI_RESET).append("\n\n");
+            return (string.isEmpty() ? (Colors.ANSI_YELLOW + "No closed days to show\n\n" + Colors.ANSI_RESET) : string.toString());
         } finally {
             l.readLock().unlock();
         }
@@ -113,7 +113,7 @@ public class Model implements Serializable {
         l.writeLock().lock();
         try {
             if (this.clients.containsKey(email)) throw new EmailAlreadyExistsException();
-            if (Utilities.checkEmail(email) != 1) throw new NotAnEmailException();
+            if (Utilities.checkEmail(email)) throw new NotAnEmailException();
             this.clients.put(email, password);
         } finally {
             l.writeLock().unlock();
@@ -137,7 +137,7 @@ public class Model implements Serializable {
             StringBuilder sb = new StringBuilder();
             for (String id : this.flights.keySet())
                 sb.append(this.flights.get(id).toString());
-            return (!sb.isEmpty()) ? sb.toString() : "No flights to show";
+            return (sb.isEmpty()) ? (Colors.ANSI_YELLOW + "No flights to show" + Colors.ANSI_RESET) : sb.toString();
         } finally {
             l.readLock().unlock();
         }
@@ -205,7 +205,7 @@ public class Model implements Serializable {
             if (resIdsOnDate != null) {
                 for (String rID : resIdsOnDate) {
                     Reservation r = this.reservations.get(rID);
-                    if (r.getFlightsID().contains(fID)) totalReservationsOfFlight++; // TODO
+                    if (r.getFlightsID().contains(fID)) totalReservationsOfFlight++;
                 }
             }
             if(totalReservationsOfFlight >= f.getnMaxPassengers()) throw new UnavailableFlightException();
@@ -258,15 +258,15 @@ public class Model implements Serializable {
                     Set<String> fIDs = r.getFlightsID();
                     for (String fID : fIDs) {
                         Flight f = this.flights.get(fID);
-                        ans.append("Flight ").append(ac++).append(":\n")
-                                .append("From: ").append(f.getOrigin()).append("\n")
-                                .append("To: ").append(f.getDestination()).append("\n")
-                                .append("Flight ID: ").append(f.getID()).append("\n\n");
+                        ans.append(Colors.ANSI_YELLOW + "Flight " + Colors.ANSI_RESET).append(ac++).append(":\n")
+                                .append(Colors.ANSI_YELLOW + "From: " + Colors.ANSI_RESET).append(f.getOrigin()).append("\n")
+                                .append(Colors.ANSI_YELLOW + "To: " + Colors.ANSI_RESET).append(f.getDestination()).append("\n")
+                                .append(Colors.ANSI_YELLOW + "Flight ID: " + Colors.ANSI_RESET).append(f.getID()).append("\n\n");
                     }
-                    ans.append("------------------------------------------------------------------\n");
+                    ans.append(Colors.ANSI_CYAN + "------------------------------------------------------------------\n" + Colors.ANSI_RESET);
                 }
             }
-            return (!ans.isEmpty()) ? ans.toString() : "No reservations to show";
+            return (ans.isEmpty()) ? (Colors.ANSI_YELLOW + "No reservations to show" + Colors.ANSI_RESET) : ans.toString();
         } finally {
             l.readLock().unlock();
         }
@@ -443,7 +443,7 @@ public class Model implements Serializable {
      * @param begin Begin date
      * @param end Maximum end date
      * @throws OnlyClosedDaysException Exception to prevent the case of Only Closed days on date range
-     * @throws UnavailableFlightException Exception to prevent unavailable flights to enter in the answer
+     * @throws UnavailableFlightException Exception to prevent unavailable flights to return the answer
      * @return Routes
      */
     public Map.Entry<LocalDate, Set<String>> getAvailableListOfFlightsInDataRange(List<City> desiredCities, LocalDate begin, LocalDate end) throws OnlyClosedDaysException, UnavailableFlightException{

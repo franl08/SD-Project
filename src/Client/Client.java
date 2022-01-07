@@ -1,20 +1,12 @@
 package Client;
 
-import Utils.AESEncrypt;
-import Utils.Demultiplexer;
-import Utils.TaggedConnection;
-import Utils.Colors;
+import Exceptions.NoNoticesException;
+import Utils.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Class that represents a client. Needs an instance of Server running to work
@@ -34,8 +26,8 @@ public class Client {
 
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
-        Queue<String> notices = new PriorityQueue<>();
-        Lock l = new ReentrantLock();
+        Notices notices = new Notices();
+        Thread receiveReservationAnswer = null;
 
         dm.start();
 
@@ -191,18 +183,35 @@ public class Client {
 
                              */
 
-                                l.lock();
-                                try {
-                                    if (!notices.isEmpty()) {
+                                /*
+                                    Thread that receives results of reservations
+                                 */
+                                if (receiveReservationAnswer == null) {
 
-                                        for (String n : notices) {
-                                            System.out.println(n);
-                                            notices.poll();
+                                    receiveReservationAnswer = new Thread( () -> {
+                                        boolean run = true;
+                                        while (run) {
+                                            try {
+                                                String reservationAnswer = new String(dm.receive(4));
+                                                notices.addNotice(reservationAnswer);
+                                            } catch (InterruptedException e) {
+                                                run = false;
+                                            } catch (IOException ignored) {}
                                         }
-                                    }
-                                } finally {
-                                    l.unlock();
+                                    });
+                                    receiveReservationAnswer.start();
+
                                 }
+
+
+                                /*
+                                    When the client enter the home menu, checks if there are any notification pending. If so, prints them and deletes them.
+                                 */
+                                try {
+                                    String noticesString = notices.displayPendingNotices();
+                                    System.out.println(Colors.ANSI_GREEN + "\n********** Notifications **********\n" + Colors.ANSI_RESET);
+                                    System.out.println(noticesString);
+                                } catch (NoNoticesException ignored) {}
 
                                 System.out.println(Colors.ANSI_GREEN + "\n********** Home Menu **********\n" + Colors.ANSI_RESET);
                                 System.out.println(Colors.ANSI_CYAN + "1. " + Colors.ANSI_RESET + "Make a reservation.");
@@ -247,29 +256,8 @@ public class Client {
 
                                                         flights.append(";").append(date);
 
-                                                        new Thread(() -> {
+                                                        dm.send(4, username, flights.toString().getBytes());
 
-                                                            String notice;
-
-                                                            try {
-                                                                dm.send(4, username, flights.toString().getBytes());
-
-                                                                String answerReservation = new String(dm.receive(4));
-                                                                if (!answerReservation.equals("Error"))
-                                                                    notice = (Colors.ANSI_PURPLE + "\nReservation made with success. Code is " + Colors.ANSI_RESET + answerReservation);
-                                                                else
-                                                                    notice = (Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
-                                                            } catch (IOException | InterruptedException e) {
-                                                                notice = (Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
-                                                            }
-
-                                                            l.lock();
-                                                            try {
-                                                                notices.add(notice);
-                                                            } finally {
-                                                                l.unlock();
-                                                            }
-                                                        }).start();
                                                     } else
                                                         System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
 
@@ -292,32 +280,10 @@ public class Client {
 
                                                     if (!cities.isEmpty() && !beginDate.equals("") && !endDate.equals("")) {
 
-                                                        new Thread(()-> {
+                                                        cities.append(";").append(beginDate).append(" ").append(endDate);
 
-                                                            String notice;
+                                                        dm.send(5, username, cities.toString().getBytes());
 
-                                                            cities.append(";").append(beginDate).append(" ").append(endDate);
-
-                                                            try {
-                                                                dm.send(5, username, cities.toString().getBytes());
-
-                                                                String answerReservation = new String(dm.receive(5));
-                                                                if (!answerReservation.equals("Error")) {
-                                                                    notice = (Colors.ANSI_PURPLE + "\nReservation made with success. Code is " + Colors.ANSI_RESET + answerReservation);
-                                                                } else
-                                                                    notice = (Colors.ANSI_RED + "\nReservation could not be made." + Colors.ANSI_RESET);
-                                                            } catch (IOException | InterruptedException e) {
-                                                                notice = (Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
-                                                            }
-
-                                                            l.lock();
-                                                            try {
-                                                                notices.add(notice);
-                                                            } finally {
-                                                                l.unlock();
-                                                            }
-
-                                                        }).start();
                                                     } else
                                                         System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled" + Colors.ANSI_RESET);
 
@@ -426,6 +392,9 @@ public class Client {
                  */
 
                     quit = true;
+
+                    if (receiveReservationAnswer != null) receiveReservationAnswer.interrupt();
+
                     System.out.println(Colors.ANSI_PURPLE + "\nExiting app..." + Colors.ANSI_RESET);
                     dm.close();
                 }
