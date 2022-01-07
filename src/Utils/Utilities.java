@@ -1,7 +1,7 @@
 package Utils;
 
 /**
- * Class of utilities
+ * Interface of utilities
  */
 public interface Utilities {
 

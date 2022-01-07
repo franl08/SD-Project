@@ -25,6 +25,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Server {
 
+    /**
+     * Allows locking resources
+     */
     public static Lock l = new ReentrantLock();
 
     /**

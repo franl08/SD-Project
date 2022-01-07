@@ -9,6 +9,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Interface that allows managing the flights, reservations and accounts data
+ */
 public interface ModelFacade {
 
     /**
