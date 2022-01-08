@@ -373,7 +373,6 @@ public class Client {
                     System.out.print(Colors.ANSI_YELLOW + "Insert password: " + Colors.ANSI_RESET);
                     String password = input.readLine();
 
-                    System.out.println(AESEncrypt.encrypt(password));
                     dm.send(1, username, AESEncrypt.encrypt(password).getBytes());
 
                     String answerLogin = new String(dm.receive(1));
