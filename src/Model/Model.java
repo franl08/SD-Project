@@ -261,13 +261,14 @@ public class Model implements Serializable, ModelFacade {
     /**
      * {@inheritDoc}
      */
-    public void removeReservationByClient(String reservationID, String username) throws DoesntExistReservationFromClientException {
+    public void removeReservationByClient(String reservationID, String username) throws DoesntExistReservationFromClientException, DayHasPassedException {
         l.writeLock().lock();
         try {
             if (this.reservations.containsKey(reservationID)) {
                 Reservation r = this.reservations.get(reservationID);
 
                 LocalDate date = r.getDate();
+                if (date.isBefore(LocalDate.now())) throw new DayHasPassedException();
                 Set<String> rIDsOnDate = this.reservationsInDate.get(date);
                 rIDsOnDate.remove(reservationID);
                 if(rIDsOnDate.size() == 0) this.reservationsInDate.remove(date);
