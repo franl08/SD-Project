@@ -11,7 +11,7 @@ public interface Utilities {
      * @return True if the email is valid, false otherwise
      */
     static boolean checkEmail(String email){
-        Pattern p = Pattern.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$");//. represents single character
+        Pattern p = Pattern.compile("^\\w+([\\.-]?\\w+)*@\\w+(\\.\\w{2,3})+$");//. represents single character
         Matcher m = p.matcher(email);
         boolean b = m.matches();
         /*char[] chars = email.toCharArray();
