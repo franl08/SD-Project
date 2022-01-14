@@ -106,8 +106,9 @@ public interface ModelFacade {
      * Removes a closed day
      * @param date Date
      * @throws NotAClosedDayException The date is not closed
+     * @throws DayHasPassedException The date has passed
      */
-    void removeClosedDay(LocalDate date) throws NotAClosedDayException;
+    void removeClosedDay(LocalDate date) throws NotAClosedDayException, DayHasPassedException;
 
     /**
      * Gets the possible routes between two cities

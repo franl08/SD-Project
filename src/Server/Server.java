@@ -166,7 +166,7 @@ public class Server {
                                 try {
                                     model.addClosedDay(LocalDate.parse(date));
                                     answer = "Success";
-                                } catch (AlreadyIsAClosedDayException | DateTimeParseException e) {
+                                } catch (AlreadyIsAClosedDayException | DayHasPassedException | DateTimeParseException e) {
                                     answer = "Error";
                                 }
 
@@ -320,7 +320,7 @@ public class Server {
                                     model.removeClosedDay(date);
                                     answer = "Success";
 
-                                } catch (NotAClosedDayException | DateTimeParseException e) {
+                                } catch (NotAClosedDayException | DayHasPassedException | DateTimeParseException e) {
                                     answer = "Error";
                                 }
 

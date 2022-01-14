@@ -487,9 +487,10 @@ public class Model implements Serializable, ModelFacade {
     /**
      * {@inheritDoc}
      */
-    public void removeClosedDay(LocalDate date) throws NotAClosedDayException {
+    public void removeClosedDay(LocalDate date) throws NotAClosedDayException, DayHasPassedException {
         l.writeLock().lock();
         try {
+            if (date.isBefore(LocalDate.now())) throw new DayHasPassedException();
             if (!this.closedDays.contains(date)) throw new NotAClosedDayException();
             this.closedDays.remove(date);
         } finally {

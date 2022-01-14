@@ -128,7 +128,7 @@ public class Client {
                                         String date = input.readLine();
 
                                         if (date.equals(""))
-                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
                                         else {
 
                                             dm.send(3, username, date.getBytes());
@@ -323,7 +323,7 @@ public class Client {
                                         String reservationCode = input.readLine();
 
                                         if (reservationCode.equals(""))
-                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                                            System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
                                         else {
                                             dm.send(6, username, reservationCode.getBytes());
                                             String answer = new String(dm.receive(6));
@@ -391,7 +391,7 @@ public class Client {
                     String password = input.readLine();
 
                     if (username.equals("") || password.equals(""))
-                        System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                        System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
                     else {
                         dm.send(1, username, AESEncrypt.encrypt(password).getBytes());
 
