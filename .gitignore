@@ -27,6 +27,6 @@ hs_err_pid*
 .idea/
 
 # Other file extensions
-.ser
-.txt
-.xml
+*.ser
+*.txt
+*.xml
