@@ -654,11 +654,11 @@ public class Model implements Serializable, ModelFacade {
         if(routes != null) {
             for (List<Flight> fls : routes) {
                 for (Flight f : fls)
-                    ans.append("<-> Flight ").append(f.getID()).append(": ").append(f.getOrigin()).append("->").append(f.getDestination()).append("\n");
-                ans.append("-------------------------------------------------------\n");
+                    ans.append(Colors.ANSI_YELLOW + "<-> Flight " + Colors.ANSI_RESET).append(f.getID()).append(Colors.ANSI_YELLOW + ": " + Colors.ANSI_RESET).append(f.getOrigin()).append(Colors.ANSI_YELLOW + "->" + Colors.ANSI_RESET).append(f.getDestination()).append("\n");
+                ans.append(Colors.ANSI_CYAN + "-------------------------------------------------------\n" + Colors.ANSI_RESET);
             }
         }
-        return (!ans.isEmpty()) ? ans.toString() : "No flights to show";
+        return (!ans.isEmpty()) ? ans.toString() : (Colors.ANSI_PURPLE + "No flights to show" + Colors.ANSI_RESET);
     }
 
     /*
