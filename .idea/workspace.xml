@@ -1,74 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="Server:jar" />
+    </artifacts-to-build>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ddf263f-2eb6-42ba-94c4-4b1fe72477d9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Client/Client.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Client/Client.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Client/package-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Client/package-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Client/package-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Client/package-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/AlreadyIsAClosedDayException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/AlreadyIsAClosedDayException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/DayHasPassedException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/DayHasPassedException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/DoesntExistReservationFromClientException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/DoesntExistReservationFromClientException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/EmailAlreadyExistsException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/EmailAlreadyExistsException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/FlightDoesntExistException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/FlightDoesntExistException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/NotAClosedDayException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/NotAClosedDayException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/NotAnEmailException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/NotAnEmailException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/OnlyClosedDaysException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/OnlyClosedDaysException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/ReservationDoesntExistException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/ReservationDoesntExistException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/UnavailableFlightException.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/UnavailableFlightException.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/package-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/package-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Exceptions/package-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Exceptions/package-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Model/Flight.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Model/Flight.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Model/Model.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Model/Model.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Model/Reservation.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Model/Reservation.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Model/package-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Model/package-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Model/package-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Model/package-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Server/Server.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Server/Server.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Server/package-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Server/package-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Server/package-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Server/package-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/AESEncrypt.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/AESEncrypt.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/Colors.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/Colors.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/Demultiplexer.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/Demultiplexer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/Log.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/Log.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/TaggedConnection.Frame.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/TaggedConnection.Frame.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/TaggedConnection.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/TaggedConnection.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/Utilities.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/Utilities.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/package-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/package-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/Utils/package-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Utils/package-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/allclasses-index.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/allclasses-index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/allpackages-index.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/allpackages-index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/constant-values.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/constant-values.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/help-doc.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/help-doc.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-1.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-1.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-10.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-10.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-11.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-11.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-12.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-12.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-13.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-13.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-14.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-14.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-15.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-15.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-16.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-16.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-17.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-17.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-18.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-18.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-19.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-19.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-2.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-2.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-20.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-20.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-3.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-3.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-4.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-4.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-5.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-5.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-6.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-6.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-7.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-7.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-8.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-8.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index-files/index-9.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index-files/index-9.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/member-search-index.js" beforeDir="false" afterPath="$PROJECT_DIR$/docs/member-search-index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/overview-summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/overview-summary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/overview-tree.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/overview-tree.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/serialized-form.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/serialized-form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/type-search-index.js" beforeDir="false" afterPath="$PROJECT_DIR$/docs/type-search-index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Client.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,6 +48,9 @@
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="project.structure.last.edited" value="Artifacts" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
   </component>
   <component name="RunManager" selected="Application.Client">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -170,6 +115,7 @@
       <workItem from="1641559441904" duration="54000" />
       <workItem from="1641634250243" duration="409000" />
       <workItem from="1641634677889" duration="74000" />
+      <workItem from="1642180474473" duration="999000" />
     </task>
     <servers />
   </component>
