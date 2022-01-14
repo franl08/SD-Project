@@ -140,12 +140,11 @@ public class Server {
 
                                 String answer;
 
-                                String flightData = new String(f.data);
-                                String[] flightDataParsed = flightData.split(" ");
-
                                 try {
+                                    String flightData = new String(f.data);
+                                    String[] flightDataParsed = flightData.split(" ");
                                     answer = model.createFlight(Integer.parseInt(flightDataParsed[2]), City.valueOf(flightDataParsed[0].toUpperCase()), City.valueOf(flightDataParsed[1].toUpperCase()));
-                                } catch (IllegalArgumentException e) {
+                                } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
                                     answer = "Error";
                                 }
 
@@ -184,17 +183,16 @@ public class Server {
                                 System.out.println("Reservation attempt by ids.");
 
                                 String path = new String(f.data);
-                                String[] pathAndDateParsed = path.split(";");
-                                String[] pathParsed = pathAndDateParsed[0].split(" ");
-                                String dateS = pathAndDateParsed[1];
-                                Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
                                 String answer;
 
-
                                 try {
+                                    String[] pathAndDateParsed = path.split(";");
+                                    String[] pathParsed = pathAndDateParsed[0].split(" ");
+                                    String dateS = pathAndDateParsed[1];
+                                    Set<String> pathSet = new HashSet<>(Arrays.asList(pathParsed));
                                     LocalDate date = LocalDate.parse(dateS);
                                     answer = model.createReservation(f.username, pathSet, date);
-                                } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException | DayHasPassedException | DateTimeParseException e) {
+                                } catch (NullPointerException | FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException | DayHasPassedException | DateTimeParseException | ArrayIndexOutOfBoundsException e) {
                                     answer = "Error";
                                 }
 
@@ -209,28 +207,26 @@ public class Server {
 
                                 System.out.println("Reservation attempt by cities.");
 
-                                String pathAndDates = new String(f.data);
-                                String[] pathAndDatesParsed = pathAndDates.split(";");
-                                String[] dates = pathAndDatesParsed[1].split(" ");
-                                String[] pathParsed = pathAndDatesParsed[0].split(" ");
-
                                 boolean validReservation = true;
-
+                                LocalDate beginDate = null, endDate = null;
                                 List<City> cities = new ArrayList<>();
-                                for (String city : pathParsed) {
-                                    try {
+
+                                try {
+                                    String pathAndDates = new String(f.data);
+                                    String[] pathAndDatesParsed = pathAndDates.split(";");
+                                    String[] dates = pathAndDatesParsed[1].split(" ");
+                                    String[] pathParsed = pathAndDatesParsed[0].split(" ");
+
+                                    for (String city : pathParsed) {
                                         City c = City.valueOf(city.toUpperCase());
                                         cities.add(c);
-                                    } catch (IllegalArgumentException e) {
-                                        validReservation = false;
                                     }
-                                }
 
-                                LocalDate beginDate = null, endDate = null;
-                                try {
                                     beginDate = LocalDate.parse(dates[0]);
                                     endDate = LocalDate.parse(dates[1]);
-                                } catch (DateTimeParseException e) {
+
+
+                                } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException | DateTimeParseException e) {
                                     validReservation = false;
                                 }
 
@@ -290,20 +286,19 @@ public class Server {
 
                                 System.out.println("Getting list of routes.");
 
-                                String cities = new String(f.data);
-                                String origin = cities.split(" ")[0];
-                                String destination = cities.split(" ")[1];
-
-                                String answer;
+                                String answer, origin = null, destination = null;
                                 try {
+                                    String cities = new String(f.data);
+                                    origin = cities.split(" ")[0];
+                                    destination = cities.split(" ")[1];
                                     answer = model.getRoutes(City.valueOf(origin), City.valueOf(destination));
-                                } catch (IllegalArgumentException e) {
+                                } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
                                     answer = "Error";
                                 }
 
                                 connection.send(8, f.username, answer.getBytes());
 
-                                log.appendMessage("Sent available routes from " + origin + " to " + destination);
+                                if (!answer.equals("Error")) log.appendMessage("Sent available routes from " + origin + " to " + destination);
                             }
                             case 9 -> {
 

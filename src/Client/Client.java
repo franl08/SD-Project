@@ -107,14 +107,18 @@ public class Client {
                                         System.out.print(Colors.ANSI_YELLOW + "Insert max number of passengers: " + Colors.ANSI_RESET);
                                         String max = input.readLine();
 
-                                        byte[] flight = String.format("%s %s %s", origin, destination, max).getBytes();
-                                        dm.send(2, username, flight);
+                                        if (origin.equals("") || destination.equals("") || max.equals(""))
+                                            System.out.println(Colors.ANSI_PURPLE + "\nOperation canceled." + Colors.ANSI_RESET);
+                                        else {
+                                            byte[] flight = String.format("%s %s %s", origin, destination, max).getBytes();
+                                            dm.send(2, username, flight);
 
-                                        String answerFlightAdd = new String(dm.receive(2));
-                                        if (!answerFlightAdd.equals("Error"))
-                                            System.out.println(Colors.ANSI_PURPLE + "\nFlight successfully added with code " + Colors.ANSI_RESET + answerFlightAdd);
-                                        else
-                                            System.out.println(Colors.ANSI_RED + "\nError in inputs inserted." + Colors.ANSI_RESET);
+                                            String answerFlightAdd = new String(dm.receive(2));
+                                            if (!answerFlightAdd.equals("Error"))
+                                                System.out.println(Colors.ANSI_PURPLE + "\nFlight successfully added with code " + Colors.ANSI_RESET + answerFlightAdd);
+                                            else
+                                                System.out.println(Colors.ANSI_RED + "\nError in inputs inserted." + Colors.ANSI_RESET);
+                                        }
 
                                     }
                                     case "2" -> { // Close day
@@ -123,9 +127,9 @@ public class Client {
                                         System.out.print(Colors.ANSI_YELLOW + "Insert date (yyyy-mm-dd): " + Colors.ANSI_RESET);
                                         String date = input.readLine();
 
-                                        if (date.equals("")) {
+                                        if (date.equals(""))
                                             System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
-                                        } else {
+                                        else {
 
                                             dm.send(3, username, date.getBytes());
 
@@ -144,13 +148,17 @@ public class Client {
                                         System.out.print(Colors.ANSI_YELLOW + "Insert date (yyyy-mm-dd): " + Colors.ANSI_RESET);
                                         String date = input.readLine();
 
-                                        dm.send(10, username, date.getBytes());
+                                        if (date.equals(""))
+                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                                        else {
+                                            dm.send(10, username, date.getBytes());
 
-                                        String answer = new String(dm.receive(10));
-                                        if (answer.equals("Success"))
-                                            System.out.println(Colors.ANSI_PURPLE + "\nClosed day removed." + Colors.ANSI_RESET);
-                                        else
-                                            System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
+                                            String answer = new String(dm.receive(10));
+                                            if (answer.equals("Success"))
+                                                System.out.println(Colors.ANSI_PURPLE + "\nClosed day removed." + Colors.ANSI_RESET);
+                                            else
+                                                System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
+                                        }
                                     }
                                     case "4" -> {
                                         dm.send(11, username, new byte[0]);
@@ -313,12 +321,17 @@ public class Client {
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Removing Reservations **********\n" + Colors.ANSI_RESET);
                                         System.out.print(Colors.ANSI_YELLOW + "Insert reservation code: " + Colors.ANSI_RESET);
                                         String reservationCode = input.readLine();
-                                        dm.send(6, username, reservationCode.getBytes());
-                                        String answer = new String(dm.receive(6));
-                                        if (answer.equals("Success"))
-                                            System.out.println(Colors.ANSI_PURPLE + "\nReservation removed with success." + Colors.ANSI_RESET);
-                                        else
-                                            System.out.println(Colors.ANSI_PURPLE + "\nReservation could not be removed." + Colors.ANSI_RESET);
+
+                                        if (reservationCode.equals(""))
+                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                                        else {
+                                            dm.send(6, username, reservationCode.getBytes());
+                                            String answer = new String(dm.receive(6));
+                                            if (answer.equals("Success"))
+                                                System.out.println(Colors.ANSI_PURPLE + "\nReservation removed with success." + Colors.ANSI_RESET);
+                                            else
+                                                System.out.println(Colors.ANSI_PURPLE + "\nReservation could not be removed." + Colors.ANSI_RESET);
+                                        }
                                     }
                                     case "4" -> { // Get listing
 
@@ -337,15 +350,19 @@ public class Client {
                                         System.out.print(Colors.ANSI_YELLOW + "Insert destination: " + Colors.ANSI_RESET);
                                         String destination = input.readLine();
 
-                                        dm.send(8, username, (origin.toUpperCase() + " " + destination.toUpperCase()).getBytes());
-
-                                        String answer = new String(dm.receive(8));
-                                        if (answer.equals("Error"))
-                                            System.out.println(Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
+                                        if (origin.equals("") || destination.equals(""))
+                                            System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
                                         else {
-                                            System.out.println("\n" + answer);
-                                            System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed: " + Colors.ANSI_RESET);
-                                            input.readLine();
+                                            dm.send(8, username, (origin.toUpperCase() + " " + destination.toUpperCase()).getBytes());
+
+                                            String answer = new String(dm.receive(8));
+                                            if (answer.equals("Error"))
+                                                System.out.println(Colors.ANSI_RED + "\nError occurred." + Colors.ANSI_RESET);
+                                            else {
+                                                System.out.println("\n" + answer);
+                                                System.out.print(Colors.ANSI_PURPLE + "\nPress enter to proceed: " + Colors.ANSI_RESET);
+                                                input.readLine();
+                                            }
                                         }
 
                                     }
@@ -373,14 +390,17 @@ public class Client {
                     System.out.print(Colors.ANSI_YELLOW + "Insert password: " + Colors.ANSI_RESET);
                     String password = input.readLine();
 
-                    dm.send(1, username, AESEncrypt.encrypt(password).getBytes());
+                    if (username.equals("") || password.equals(""))
+                        System.out.println(Colors.ANSI_PURPLE + "Operation canceled." + Colors.ANSI_RESET);
+                    else {
+                        dm.send(1, username, AESEncrypt.encrypt(password).getBytes());
 
-                    String answerLogin = new String(dm.receive(1));
-                    if (answerLogin.equals("Success"))
-                        System.out.println(Colors.ANSI_PURPLE + "\nAccount successfully created." + Colors.ANSI_RESET);
-                    else
-                        System.out.println(Colors.ANSI_RED + "\nInvalid credentials." + Colors.ANSI_RESET);
-
+                        String answerLogin = new String(dm.receive(1));
+                        if (answerLogin.equals("Success"))
+                            System.out.println(Colors.ANSI_PURPLE + "\nAccount successfully created." + Colors.ANSI_RESET);
+                        else
+                            System.out.println(Colors.ANSI_RED + "\nInvalid credentials." + Colors.ANSI_RESET);
+                    }
                 }
                 case "0" -> {
 
