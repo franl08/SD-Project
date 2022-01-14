@@ -34,7 +34,7 @@ public class Model implements Serializable, ModelFacade {
     /**
      * Stores the closed days
      */
-    private final Set<LocalDate> closedDays; // Point 4. of basic functionalities in utterance
+    private final Set<LocalDate> closedDays;
 
     /**
      * Stores the reservations in a date
@@ -238,8 +238,8 @@ public class Model implements Serializable, ModelFacade {
                 for (String id : reservations.keySet()) {
                     int ac = 1;
                     Reservation r = reservations.get(id);
-                    ans.append("Reservation ID: ").append(r.getID()).append("\n");
-                    ans.append("Date: ").append(r.getDate()).append("\n");
+                    ans.append(Colors.ANSI_YELLOW + "Reservation ID: " + Colors.ANSI_RESET).append(r.getID()).append("\n");
+                    ans.append(Colors.ANSI_YELLOW + "Date: " + Colors.ANSI_RESET).append(r.getDate()).append("\n");
                     Set<String> fIDs = r.getFlightsID();
                     for (String fID : fIDs) {
                         Flight f = this.flights.get(fID);
@@ -464,9 +464,10 @@ public class Model implements Serializable, ModelFacade {
     /**
      * {@inheritDoc}
      */
-    public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDayException {
+    public void addClosedDay(LocalDate date) throws AlreadyIsAClosedDayException, DayHasPassedException{
         l.writeLock().lock();
         try {
+            if(date.isBefore(LocalDate.now())) throw new DayHasPassedException();
             if (!this.closedDays.contains(date)) {
                 this.closedDays.add(date);
                 if (this.reservationsInDate.get(date) != null) {

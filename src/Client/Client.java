@@ -153,7 +153,7 @@ public class Client {
                                             System.out.println(Colors.ANSI_RED + "\nAction could not be performed." + Colors.ANSI_RESET);
                                     }
                                     case "4" -> {
-                                        dm.send(11, username, "0".getBytes());
+                                        dm.send(11, username, new byte[0]);
 
                                         String listingClosedDays = new String(dm.receive(11));
 
@@ -164,7 +164,7 @@ public class Client {
 
                                     }
                                     case "5" -> {
-                                        dm.send(7, username, "0".getBytes());
+                                        dm.send(7, username, new byte[0]);
                                         String data = new String(dm.receive(7));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
                                         System.out.println(data);
@@ -300,7 +300,7 @@ public class Client {
                                     }
                                     case "2" -> {
 
-                                        dm.send(7, username, "0".getBytes());
+                                        dm.send(7, username, new byte[0]);
                                         String data = new String(dm.receive(7));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Flights **********\n" + Colors.ANSI_RESET);
                                         System.out.println(data);
@@ -322,7 +322,7 @@ public class Client {
                                     }
                                     case "4" -> { // Get listing
 
-                                        dm.send(9, username, "0".getBytes());
+                                        dm.send(9, username, new byte[0]);
                                         String data = new String(dm.receive(9));
                                         System.out.println(Colors.ANSI_GREEN + "\n********** Reservations made **********\n" + Colors.ANSI_RESET);
                                         System.out.println(data);

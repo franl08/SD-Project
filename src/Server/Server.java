@@ -194,7 +194,7 @@ public class Server {
                                 try {
                                     LocalDate date = LocalDate.parse(dateS);
                                     answer = model.createReservation(f.username, pathSet, date);
-                                } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException | DayHasPassedException e) {
+                                } catch (FlightDoesntExistException | UnavailableFlightException | IllegalArgumentException | OnlyClosedDaysException | DayHasPassedException | DateTimeParseException e) {
                                     answer = "Error";
                                 }
 

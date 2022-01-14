@@ -98,8 +98,9 @@ public interface ModelFacade {
      * Adds a closed day, removing the flights on that day
      * @param date Date
      * @throws AlreadyIsAClosedDayException Already is a closed day
+     * @throws DayHasPassedException Exception to prevent a closed day insertion on a past date
      */
-    void addClosedDay(LocalDate date) throws AlreadyIsAClosedDayException;
+    void addClosedDay(LocalDate date) throws AlreadyIsAClosedDayException, DayHasPassedException;
 
     /**
      * Removes a closed day

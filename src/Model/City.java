@@ -177,7 +177,15 @@ public enum City implements Serializable {
     /**
      * City of Dubai
      */
-    DUBAI;
+    DUBAI,
+    /**
+     * City of Oporto
+     */
+    OPORTO,
+    /**
+     * City of Vigo
+     */
+    VIGO;
 
     /**
      * Converts a City to a string
@@ -314,8 +322,14 @@ public enum City implements Serializable {
             case DUBAI -> {
                 return "Dubai";
             }
+            case OPORTO -> {
+                return "Oporto";
+            }
+            case VIGO -> {
+                return "Vigo";
+            }
             default -> {
-                return "Heaven";
+                return "";
             }
         }
     }
