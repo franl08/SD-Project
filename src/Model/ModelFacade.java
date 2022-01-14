@@ -64,8 +64,9 @@ public interface ModelFacade {
      * @param reservationID ID of the reservation
      * @param username Email of the client
      * @throws DoesntExistReservationFromClientException Client doesn't have a reservation with that ID
+     * @throws DayHasPassedException The day has already passed
      */
-    void removeReservationByClient(String reservationID, String username) throws DoesntExistReservationFromClientException;
+    void removeReservationByClient(String reservationID, String username) throws DoesntExistReservationFromClientException, DayHasPassedException;
 
     /**
      * Creates a reservation

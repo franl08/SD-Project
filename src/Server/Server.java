@@ -261,7 +261,7 @@ public class Server {
                                 try {
                                     model.removeReservationByClient(id, username);
                                     answer = "Success";
-                                } catch (DoesntExistReservationFromClientException e) {
+                                } catch (DoesntExistReservationFromClientException | DayHasPassedException e) {
                                     answer = "Error";
                                 }
 
