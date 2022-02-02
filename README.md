@@ -10,4 +10,4 @@ Done in the context of SD (Distributed Systems) in University of Minho
 
 [João Miguel Pinheiro Machado](https://github.com/pinetreeaxe)
 
-Grade: /20
+Grade: 16/20
